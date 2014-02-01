@@ -1,7 +1,5 @@
-#define BUILDING_NODE_EXTENSION
 #include <node.h>
 #include <nan.h>
-#include <bangdb/database.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -64,6 +62,7 @@ namespace bangdown {
  }
 
   void Init(v8::Handle<v8::Object> exports) { 
+
     Database::Init();
     v8::Local<v8::Function> bangdown = v8::FunctionTemplate::New(Bang)->GetFunction();
 
@@ -75,22 +74,3 @@ namespace bangdown {
 
 NODE_MODULE(bangdown, bangdown::Init);
 
-using namespace v8;
-
-
-Handle<Value> CreateObject(const Arguments& args) {
-  HandleScope scope;
-
-  Local<Object> obj = Object::New();
-  obj->Set(String::NewSymbol("msg"), args[0]->ToString());
-
-  return scope.Close(obj);
-}
-
-void Init(Handle<Object> exports, Handle<Object> module) {
-  Database::Init();
-  module->Set(String::NewSymbol("exports"),
-      FunctionTemplate::New(CreateObject)->GetFunction());
-}
-
-//NODE_MODULE(addon, Init)

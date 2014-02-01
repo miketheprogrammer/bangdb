@@ -1,26 +1,23 @@
 
 #include <node.h> 
-#include <bangdb/database.h>
 #include "database.h"
 
 namespace bangdown {
 static v8::Persistent<v8::FunctionTemplate> database_constructor;
 
-Database::Database (char* name) : location(location) {
+Database::Database (char* name) : name(name) {
   db = NULL;
-  currentIteratorId = 0;
-  pendingCloseWorker = NULL;
 };
 
 Database::~Database () {
   if (db != NULL)
     db->closedatabase();
     delete db;
-  delete[] bane;
+  delete[] name;
 };
 
 database* Database::OpenDatabase (
-      std::string location
+  char* location
     ) {
   database* db;
   db = new database((char*)location);
@@ -32,6 +29,7 @@ void Database::Init () {
   NanAssignPersistent(v8::FunctionTemplate, database_constructor, tpl);
   tpl->SetClassName(NanSymbol("Database"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "new", Database::New);
 }
 
 NAN_METHOD(Database::New) {
@@ -45,9 +43,10 @@ NAN_METHOD(Database::New) {
 
   char* name = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
-  database* obj = new database(name);
+  Database* obj = new Database(name);
   obj->Wrap(args.This());
-
+  printf("NAME: %s \n", name);
+  NanReturnUndefined();
   NanReturnValue(args.This());
 }
   NAN_METHOD(Bang){
@@ -56,7 +55,24 @@ NAN_METHOD(Database::New) {
     v8::Local<v8::String> name;
     if (args.Length() != 0 && args[0]->IsString())
       name = args[0].As<v8::String>();
-    Database::Init();
+
+    NanReturnValue(Database::NewInstance(name));
+  }
+v8::Handle<v8::Value> Database::NewInstance (v8::Local<v8::String> &name) {
+  NanScope();
+
+  v8::Local<v8::Object> instance;
+
+  v8::Local<v8::FunctionTemplate> constructorHandle =
+      NanPersistentToLocal(database_constructor);
+
+  if (name.IsEmpty()) {
+    instance = constructorHandle->GetFunction()->NewInstance(0, NULL);
+  } else {
+    v8::Handle<v8::Value> argv[] = { name };
+    instance = constructorHandle->GetFunction()->NewInstance(1, argv);
   }
 
+  return instance;
+}
 }

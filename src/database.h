@@ -12,13 +12,12 @@ namespace bangdown {
 
 NAN_METHOD(Bang);
 
-
 class Database : public node::ObjectWrap {
 public:
   static void Init ();
   static v8::Handle<v8::Value> NewInstance (v8::Local<v8::String> &location);
 
-  database* OpenDatabase(std::string name);
+  database* OpenDatabase(char* name);
 
   Database (char* name);
   ~Database ();
@@ -30,9 +29,6 @@ private:
   static NAN_METHOD(New);
 };
 
-} // namespace leveldown
-
-
-}
+} 
 
 #endif
