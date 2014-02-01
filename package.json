@@ -1,0 +1,21 @@
+{
+  "name": "bangdb",
+  "version": "0.0.0",
+  "description": "bangdb ======",
+  "main": "addon.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node-gyp rebuild"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/miketheprogrammer/bangdb.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/miketheprogrammer/bangdb/issues"
+  },
+  "homepage": "https://github.com/miketheprogrammer/bangdb"
+}
