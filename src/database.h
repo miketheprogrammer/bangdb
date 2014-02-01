@@ -13,16 +13,6 @@ namespace bangdown {
 NAN_METHOD(Bang);
 
 
-static inline void ClearReferences (std::vector<Reference *> *references) {
-  for (std::vector<Reference *>::iterator it = references->begin()
-      ; it != references->end()
-      ; ) {
-    DisposeStringOrBufferFromSlice((*it)->handle, (*it)->slice);
-    it = references->erase(it);
-  }
-  delete references;
-}
-
 class Database : public node::ObjectWrap {
 public:
   static void Init ();
