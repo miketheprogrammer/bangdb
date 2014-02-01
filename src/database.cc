@@ -1,5 +1,6 @@
 
 #include <node.h> 
+#include <node_buffer.h>
 #include "database.h"
 
 namespace bangdown {
@@ -30,6 +31,7 @@ void Database::Init () {
   tpl->SetClassName(NanSymbol("Database"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "new", Database::New);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "put", Database::Put);
 }
 
 NAN_METHOD(Database::New) {
@@ -46,9 +48,45 @@ NAN_METHOD(Database::New) {
   Database* obj = new Database(name);
   obj->Wrap(args.This());
   printf("NAME: %s \n", name);
-  NanReturnUndefined();
+//  NanReturnUndefined();
   NanReturnValue(args.This());
 }
+
+NAN_METHOD(Database::Put) {
+    NanScope();
+
+    char* location = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+    printf("Creating new db\n");
+    database* db = new database((char*)location);
+    printf("%s Created\n", db->getdbname());
+
+    table *tbl = db->gettable((char*)"mytable2");
+    connection *conn = tbl->getconnection();
+
+    FDT ikey, ival, *out;
+
+//    char* key = location;
+//    char* val = location;
+
+
+    ikey.data = location;
+    ikey.length = strlen(location);
+    ival.data = (void*)location;
+    ival.length = strlen(location);
+    int ret;
+    ret=conn->put(&ikey, &ival, INSERT_UPDATE);
+    printf("PUT Finished with %d\n",ret);   
+    out = conn->get(&ikey);
+    printf("GET Finished\n");
+    printf("GET ReturnValue(%s)\n", (char*)out->data);
+
+//    key = null;
+//    val = null;
+    db->closedatabase();
+    delete db;
+    NanReturnUndefined();
+}
+
   NAN_METHOD(Bang){
     NanScope();
 

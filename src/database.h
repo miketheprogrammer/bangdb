@@ -27,6 +27,9 @@ private:
   char* name;
 
   static NAN_METHOD(New);
+  static NAN_METHOD(Put);
+  static NAN_METHOD(Get);
+
 };
 
 } 
