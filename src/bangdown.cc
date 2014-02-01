@@ -79,7 +79,7 @@ namespace bangdown {
   }
 }
 
-NODE_MODULE(addon, bangdown::Init);
+NODE_MODULE(bangdown, bangdown::Init);
 
 using namespace v8;
 

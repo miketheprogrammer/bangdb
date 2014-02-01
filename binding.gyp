@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "addon",
+      "target_name": "bangdown",
       "conditions": [
          ['OS == "linux"', {
               'libraries': [
@@ -14,7 +14,7 @@
             "<!(node -e \"require('nan')\")"
         ]
               , "sources": [
-            "src/addon.cc"
+            "src/bangdown.cc"
         ]
     }
   ]
