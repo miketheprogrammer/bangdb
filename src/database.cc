@@ -1,5 +1,5 @@
 
-#include 
+#include <node.h> 
 #include "database.h"
 
 namespace bangdown {

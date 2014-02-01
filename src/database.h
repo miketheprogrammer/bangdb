@@ -9,5 +9,7 @@
 
 
 namespace bangdown {
-    NAN_METHOD(BangDOWN);
+    NAN_METHOD(Bang);
 }
+
+#endif
