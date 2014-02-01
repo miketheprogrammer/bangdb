@@ -64,6 +64,7 @@ namespace bangdown {
  }
 
   void Init(v8::Handle<v8::Object> exports) { 
+    Database::Init();
     v8::Local<v8::Function> bangdown = v8::FunctionTemplate::New(Bang)->GetFunction();
 
     bangdown->Set(NanSymbol("create"), v8::FunctionTemplate::New(CreateDb)->GetFunction());
@@ -87,6 +88,7 @@ Handle<Value> CreateObject(const Arguments& args) {
 }
 
 void Init(Handle<Object> exports, Handle<Object> module) {
+  Database::Init();
   module->Set(String::NewSymbol("exports"),
       FunctionTemplate::New(CreateObject)->GetFunction());
 }
