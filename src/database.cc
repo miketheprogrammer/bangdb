@@ -7,13 +7,13 @@ namespace bangdown {
 static v8::Persistent<v8::FunctionTemplate> database_constructor;
 
 Database::Database (char* name) : name(name) {
-  db = NULL;
+  this->OpenDatabase(name);
 };
 
 Database::~Database () {
-  if (db != NULL)
-    db->closedatabase();
-    delete db;
+  if (bangdb != NULL)
+    bangdb->closedatabase();
+    delete bangdb;
   delete[] name;
 };
 
@@ -21,17 +21,57 @@ database* Database::OpenDatabase (
   char* location
     ) {
   //database* db;
-  db = new database((char*)location);
-  printf("%s Created\n", db->getdbname());
-  return db;
+  bangdb = new database((char*)location);
+  printf("%s Created\n", bangdb->getdbname());
+  return bangdb;
 }
 void Database::Init () {
   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Database::New);
   NanAssignPersistent(v8::FunctionTemplate, database_constructor, tpl);
   tpl->SetClassName(NanSymbol("Database"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "open", Database::Open);
   NODE_SET_PROTOTYPE_METHOD(tpl, "new", Database::New);
   NODE_SET_PROTOTYPE_METHOD(tpl, "put", Database::Put);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "get", Database::Get);
+}
+
+int Database::OpenTable (char* tablename) {
+  bangtable = bangdb->gettable(tablename);
+  bangconnection = bangtable->getconnection();
+  return 1;
+}
+
+int Database::PutValue(char* key, char* val) {
+
+  FDT ikey, ival;
+
+  ikey.data = key;
+  ikey.length = strlen(key);
+  ival.data = (void*)val;
+  ival.length = strlen(val);
+  
+  printf("PUTTING data\n");  
+  
+  int flag = bangconnection->put(&ikey, &ival, INSERT_UPDATE);
+
+  printf("Put has flag %d\n",flag);
+
+  return flag;
+}
+
+FDT* Database::GetValue(char* key) { 
+
+  FDT ikey;
+
+  ikey.data = key;
+  ikey.length = strlen(key);
+
+  FDT* result = bangconnection->get(&ikey);
+ 
+  printf("result: (%s) \n", (char*)result->data);
+
+  return result;
 }
 
 NAN_METHOD(Database::New) {
@@ -51,41 +91,51 @@ NAN_METHOD(Database::New) {
 //  NanReturnUndefined();
   NanReturnValue(args.This());
 }
+NAN_METHOD(Database::Open) {
+  NanScope();
+ 
+  Database* _db = ObjectWrap::Unwrap<Database>(args.This());
+ 
+  char* tablename = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
+  _db->OpenTable(tablename);
+
+  
+  NanReturnUndefined();
+}
 NAN_METHOD(Database::Put) {
     NanScope();
-  
-    Database* _database = ObjectWrap::Unwrap<Database>(args.This());
-    char* location = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-    printf("Creating new db\n");
-    database* db = new database((char*)location);
-    printf("%s Created\n", db->getdbname());
+ 
+    Database* _db = ObjectWrap::Unwrap<Database>(args.This());
+ 
+    char* tablename = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+    char* key = NanFromV8String(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+    char* val = NanFromV8String(args[2].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
-    table *tbl = db->gettable((char*)"mytable2");
-    connection *conn = tbl->getconnection();
+    printf("PUT ARGS %s %s %s", tablename, key, val);
+    _db->OpenTable(tablename);
+    _db->PutValue(key, val);
 
-    FDT ikey, ival, *out;
+    printf("Done putting \n");
 
-//    char* key = location;
-//    char* val = location;
-
-
-    ikey.data = location;
-    ikey.length = strlen(location);
-    ival.data = (void*)location;
-    ival.length = strlen(location);
-    int ret;
-    ret=conn->put(&ikey, &ival, INSERT_UPDATE);
-    printf("PUT Finished with %d\n",ret);   
-    out = conn->get(&ikey);
-    printf("GET Finished\n");
-    printf("GET ReturnValue(%s)\n", (char*)out->data);
-
-//    key = null;
-//    val = null;
-    db->closedatabase();
-    delete db;
     NanReturnUndefined();
+}
+
+NAN_METHOD(Database::Get) {
+  NanScope();
+
+  Database* _db = ObjectWrap::Unwrap<Database>(args.This());
+
+  char* tablename = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  char* key = NanFromV8String(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+
+  _db->OpenTable(tablename);
+  printf("GET ARGS: %s %s", tablename, key);
+
+  FDT* result = _db->GetValue(key);
+
+  NanReturnValue(v8::String::New((char*)result->data));
+  result->free();
 }
 
   NAN_METHOD(Bang){
