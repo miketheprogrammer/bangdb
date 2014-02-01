@@ -13,17 +13,6 @@ namespace bangdown {
 NAN_METHOD(Bang);
 
 
-struct Reference {
-  v8::Persistent<v8::Object> handle;
-  leveldb::Slice slice;
-
-  Reference(v8::Local<v8::Value> obj, leveldb::Slice slice) : slice(slice) {
-    v8::Local<v8::Object> _obj = v8::Object::New();
-    _obj->Set(NanSymbol("obj"), obj);
-    NanAssignPersistent(v8::Object, handle, _obj);
-  };
-};
-
 static inline void ClearReferences (std::vector<Reference *> *references) {
   for (std::vector<Reference *>::iterator it = references->begin()
       ; it != references->end()
