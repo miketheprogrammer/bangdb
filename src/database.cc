@@ -20,7 +20,7 @@ Database::~Database () {
 database* Database::OpenDatabase (
   char* location
     ) {
-  database* db;
+  //database* db;
   db = new database((char*)location);
   printf("%s Created\n", db->getdbname());
   return db;
@@ -54,7 +54,8 @@ NAN_METHOD(Database::New) {
 
 NAN_METHOD(Database::Put) {
     NanScope();
-
+  
+    Database* _database = ObjectWrap::Unwrap<Database>(args.This());
     char* location = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
     printf("Creating new db\n");
     database* db = new database((char*)location);
