@@ -28,6 +28,8 @@ database* Database::OpenDatabase (
 int Database::CloseDatabase () {
   bangdb->closedatabase();
   delete bangdb;
+  
+  return 1;
 }
 
 void Database::Init () {
@@ -63,7 +65,7 @@ int Database::CloseTable (char* tablename) {
     bangtable->closetable();
     bangtable = NULL;
   }
-
+  return 1;
 }
 
 int Database::PutValue(char* key, char* val) {
@@ -140,6 +142,8 @@ NAN_METHOD(Database::Free) {
   Database* _db = ObjectWrap::Unwrap<Database>(args.This());
 
   _db->CloseDatabase(); 
+
+  NanReturnUndefined();
 }
 
 NAN_METHOD(Database::Put) {
