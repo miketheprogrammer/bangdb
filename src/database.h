@@ -46,8 +46,12 @@ private:
   static NAN_METHOD(New);  // Initlizes. Private;
   static NAN_METHOD(Put); //PutValue
   static NAN_METHOD(Get); // GetValue
+
   static NAN_METHOD(Open); // OpenTable
   static NAN_METHOD(Close); // CloseTable
+  
+  static NAN_METHOD(Iterator);
+  
   // Free is a pointer to CloseDatabase
   static NAN_METHOD(Free);
 

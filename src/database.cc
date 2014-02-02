@@ -43,6 +43,7 @@ void Database::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "get", Database::Get);
   NODE_SET_PROTOTYPE_METHOD(tpl, "close", Database::Close);
   NODE_SET_PROTOTYPE_METHOD(tpl, "free", Database::Free);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", Database::Iterator);
 }
 
 /*
@@ -92,6 +93,10 @@ FDT* Database::GetValue(char* key) {
  
 
   return result;
+}
+
+resultset* Database::NewIterator (char* skey, char* ekey) {
+  return bangconnection->scan(skey, ekey);
 }
 
 NAN_METHOD(Database::New) {
@@ -197,5 +202,26 @@ v8::Handle<v8::Value> Database::NewInstance (v8::Local<v8::String> &name) {
   }
 
   return instance;
+}
+NAN_METHOD(Database::Iterator) {
+  NanScope();
+
+  Database* database = node::ObjectWrap::Unwrap<Database>(args.This());
+
+  char* skey = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  char* ekey = NanFromV8String(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+
+
+  v8::TryCatch try_catch;
+  v8::Local<v8::Object> iteratorHandle = Iterator::NewInstance(
+      args.This()
+    , skey
+    , ekey
+  );
+  if (try_catch.HasCaught()) {
+    node::FatalException(try_catch);
+  }
+
+  NanReturnValue(iteratorHandle);
 }
 }
