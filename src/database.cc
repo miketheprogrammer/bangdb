@@ -50,13 +50,8 @@ int Database::PutValue(char* key, char* val) {
   ikey.length = strlen(key);
   ival.data = (void*)val;
   ival.length = strlen(val);
-  
-  printf("PUTTING data\n");  
-  
-  int flag = bangconnection->put(&ikey, &ival, INSERT_UPDATE);
 
-  printf("Put has flag %d\n",flag);
-
+  int flag = bangconnection->put(&ikey, &ival, INSERT_UPDATE); 
   return flag;
 }
 
@@ -69,7 +64,6 @@ FDT* Database::GetValue(char* key) {
 
   FDT* result = bangconnection->get(&ikey);
  
-  printf("result: (%s) \n", (char*)result->data);
 
   return result;
 }
@@ -108,15 +102,10 @@ NAN_METHOD(Database::Put) {
  
     Database* _db = ObjectWrap::Unwrap<Database>(args.This());
  
-    char* tablename = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-    char* key = NanFromV8String(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-    char* val = NanFromV8String(args[2].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+    char* key = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+    char* val = NanFromV8String(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
-    printf("PUT ARGS %s %s %s", tablename, key, val);
-    _db->OpenTable(tablename);
     _db->PutValue(key, val);
-
-    printf("Done putting \n");
 
     NanReturnUndefined();
 }
@@ -126,11 +115,7 @@ NAN_METHOD(Database::Get) {
 
   Database* _db = ObjectWrap::Unwrap<Database>(args.This());
 
-  char* tablename = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-  char* key = NanFromV8String(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-
-  _db->OpenTable(tablename);
-  printf("GET ARGS: %s %s", tablename, key);
+  char* key = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
   FDT* result = _db->GetValue(key);
 
