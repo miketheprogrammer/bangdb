@@ -20,26 +20,50 @@ Database::~Database () {
 database* Database::OpenDatabase (
   char* location
     ) {
-  //database* db;
   bangdb = new database((char*)location);
   printf("%s Created\n", bangdb->getdbname());
   return bangdb;
 }
+
+int Database::CloseDatabase () {
+  bangdb->closedatabase();
+  delete bangdb;
+}
+
 void Database::Init () {
   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Database::New);
   NanAssignPersistent(v8::FunctionTemplate, database_constructor, tpl);
   tpl->SetClassName(NanSymbol("Database"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "open", Database::Open);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "new", Database::New);
+  //NODE_SET_PROTOTYPE_METHOD(tpl, "new", Database::New);
   NODE_SET_PROTOTYPE_METHOD(tpl, "put", Database::Put);
   NODE_SET_PROTOTYPE_METHOD(tpl, "get", Database::Get);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "close", Database::Close);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "free", Database::Free);
 }
 
+/*
+TODO: Convert from using single table
+To a list of tables.
+*/
 int Database::OpenTable (char* tablename) {
   bangtable = bangdb->gettable(tablename);
   bangconnection = bangtable->getconnection();
   return 1;
+}
+
+int Database::CloseTable (char* tablename) {
+  if (bangconnection != NULL) {
+    bangconnection->closeconnection();
+    bangconnection = NULL;
+  }
+
+  if (bangtable != NULL) {
+    bangtable->closetable();
+    bangtable = NULL;
+  }
+
 }
 
 int Database::PutValue(char* key, char* val) {
@@ -97,6 +121,27 @@ NAN_METHOD(Database::Open) {
   
   NanReturnUndefined();
 }
+
+NAN_METHOD(Database::Close) {
+  NanScope();
+ 
+  Database* _db = ObjectWrap::Unwrap<Database>(args.This());
+ 
+  char* tablename = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+
+  _db->CloseTable(tablename);
+
+  NanReturnUndefined();
+}
+
+NAN_METHOD(Database::Free) {
+  NanScope();
+ 
+  Database* _db = ObjectWrap::Unwrap<Database>(args.This());
+
+  _db->CloseDatabase(); 
+}
+
 NAN_METHOD(Database::Put) {
     NanScope();
  
@@ -123,15 +168,15 @@ NAN_METHOD(Database::Get) {
   result->free();
 }
 
-  NAN_METHOD(Bang){
-    NanScope();
+NAN_METHOD(Bang){
+  NanScope();
 
-    v8::Local<v8::String> name;
-    if (args.Length() != 0 && args[0]->IsString())
-      name = args[0].As<v8::String>();
+  v8::Local<v8::String> name;
+  if (args.Length() != 0 && args[0]->IsString())
+    name = args[0].As<v8::String>();
 
-    NanReturnValue(Database::NewInstance(name));
-  }
+  NanReturnValue(Database::NewInstance(name));
+}
 v8::Handle<v8::Value> Database::NewInstance (v8::Local<v8::String> &name) {
   NanScope();
 
