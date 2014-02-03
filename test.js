@@ -1,4 +1,4 @@
-var bangdb = require('bindings')('bangdb.node').bangdown;
+var bangdb = require('bindings')('bangdb.node').bangdb;
 
 console.log(bangdb);
 console.log('Creating Bangdb DB Interface');

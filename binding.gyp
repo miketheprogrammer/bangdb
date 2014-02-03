@@ -14,7 +14,7 @@
             "<!(node -e \"require('nan')\")"
         ]
               , "sources": [
-            "src/bangdown.cc"
+            "src/bangdb.cc"
             ,"src/database.cc"
             ,"src/iterator.cc"
         ]
