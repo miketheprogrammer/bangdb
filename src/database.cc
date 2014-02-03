@@ -5,6 +5,7 @@
 #include "iterator.h"
 #include <bangdb/database.h>
 #include <bangdb/resultset.h>
+#include "autodestroy.h"
 namespace bangdown {
 static v8::Persistent<v8::FunctionTemplate> database_constructor;
 
@@ -13,24 +14,35 @@ Database::Database (char* name) : name(name) {
 };
 
 Database::~Database () {
-  if (bangdb != NULL)
+  //printf("Destroying DB Handle");
+  
+  if (bangconnection != NULL) {
+    bangconnection->closeconnection();
+    //delete bangconnection;
+  }
+
+  if (bangtable != NULL) {
+    bangtable->closetable();
+    //delete bangtable;
+  }
+
+  if (bangdb != NULL) {
     bangdb->closedatabase();
-    delete bangdb;
-  delete[] name;
+    //delete bangdb;
+  }    
+  //delete[] name;
 };
 
 database* Database::OpenDatabase (
   char* location
     ) {
   bangdb = new database((char*)location);
-  printf("%s Created\n", bangdb->getdbname());
   return bangdb;
 }
 
 int Database::CloseDatabase () {
   bangdb->closedatabase();
-  delete bangdb;
-  
+  bangdb = NULL; 
   return 1;
 }
 
@@ -68,6 +80,7 @@ int Database::CloseTable (char* tablename) {
     bangtable->closetable();
     bangtable = NULL;
   }
+  printf("closing table");
   return 1;
 }
 
@@ -116,8 +129,8 @@ NAN_METHOD(Database::New) {
   char* name = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
   Database* obj = new Database(name);
+  //Shell::autoDestroy(obj);
   obj->Wrap(args.This());
-  printf("NAME: %s \n", name);
 //  NanReturnUndefined();
   NanReturnValue(args.This());
 }

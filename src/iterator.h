@@ -29,6 +29,7 @@ public:
 
   bool IteratorNext(std::string& key, std::string& value); // Has Next; move iter; out key:val
   bool IteratorPeekNext(); // Is there more data coming
+  bool IteratorHasNext();
   bool IteratorClose();
   bool IteratorEnd();
   resultset* NewIterator(char* skey, char* ekey);
@@ -47,7 +48,8 @@ private:
     static NAN_METHOD(New);
     static NAN_METHOD(Next);
     static NAN_METHOD(Peek);
-    static NAN_METHOD(End);
+    static NAN_METHOD(Close);
+    static NAN_METHOD(HasNext);
 };
 }
 

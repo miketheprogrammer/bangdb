@@ -48,7 +48,7 @@ bool Iterator::IteratorNext (std::string& key, std::string& value) {
       delete rs;
 
       rs = db->NewIterator(sk, ek);
-
+      rs->moveNext();
       if (rs->hasNext()) {
         key.assign((char* )rs->getNextKey()->data, rs->getNextKey()->length);
         value.assign((char* )rs->getNextVal()->data, rs->getNextVal()->length);
@@ -62,12 +62,22 @@ bool Iterator::IteratorNext (std::string& key, std::string& value) {
     return false;
   }
 }
+bool Iterator::IteratorHasNext() {
+  if(rs->hasNext()) {
+    return true;
+  }
+  if(rs->moreDataToCome()){
+    return true;
+  }
+
+  return false;
+}
 
 bool Iterator::IteratorPeekNext() {
   return rs->moreDataToCome();
 }
 
-bool Iterator::IteratorEnd() {
+bool Iterator::IteratorClose() {
   if (rs != NULL) {
     rs->clear();
     delete rs;
@@ -83,6 +93,7 @@ void Iterator::Init () {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "next", Iterator::Next);
   NODE_SET_PROTOTYPE_METHOD(tpl, "peek", Iterator::Peek);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "hasNext", Iterator::HasNext);
   //NODE_SET_PROTOTYPE_METHOD(tpl, "end", Iterator::End);
 }
 
@@ -119,6 +130,11 @@ NAN_METHOD(Iterator::New) {
   iterator->Wrap(args.This());
 
   NanReturnValue(args.This());
+}
+NAN_METHOD(Iterator::HasNext){
+  NanScope();
+  Iterator* iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
+  NanReturnValue(v8::Boolean::New(iterator->IteratorHasNext()));
 }
 
 NAN_METHOD(Iterator::Next) {
