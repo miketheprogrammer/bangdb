@@ -2,7 +2,9 @@
 #include <node.h> 
 #include <node_buffer.h>
 #include "database.h"
-
+#include "iterator.h"
+#include <bangdb/database.h>
+#include <bangdb/resultset.h>
 namespace bangdown {
 static v8::Persistent<v8::FunctionTemplate> database_constructor;
 

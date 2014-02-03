@@ -5,7 +5,6 @@
 #include "nan.h"
 #include "bangdown.h"
 #include "database.h"
-
 namespace bangdown {
 
 class Database;
@@ -15,7 +14,7 @@ class Iterator : public node::ObjectWrap {
 public:
   static void Init();
   static v8::Local<v8::Object> NewInstance (
-      v8::Local<v8::Object> db;
+      v8::Local<v8::Object> db
     , char* skey
     , char* ekey
   );
@@ -49,3 +48,6 @@ private:
     static NAN_METHOD(End);
 };
 }
+
+
+#endif

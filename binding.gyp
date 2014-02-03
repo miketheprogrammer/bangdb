@@ -16,6 +16,7 @@
               , "sources": [
             "src/bangdown.cc"
             ,"src/database.cc"
+            ,"src/iterator.cc"
         ]
     }
   ]
