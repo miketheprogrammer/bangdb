@@ -23,12 +23,15 @@ console.log('put done');
 
 
 var start = new Date();
-for (var i = 0; i < 1000000; i += 1) {
-  var key = 'key' + i;
+var key, val;
+for (var i = 0; i < 100; i += 1) {
+  key = 'key' + i;
   bd.put(key, key);
-  bd.get(key);
+  val = bd.get(key);
 }
 
 
 console.log('Test took ', new Date() - start);
-
+console.log('Closing Database')
+bd.close('data');
+bd.free();

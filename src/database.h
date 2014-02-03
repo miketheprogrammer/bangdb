@@ -4,9 +4,10 @@
 #include <map>
 #include <vector>
 #include <node.h>
+#include <string>
 #include <bangdb/database.h>
 #include "nan.h"
-
+#include "iterator.h"
 
 namespace bangdown {
 
@@ -25,6 +26,7 @@ public:
   int OpenTable(char* name);
   int CloseTable(char* name);
 
+  resultset* NewIterator (char* skey, char* ekey);
   // For now we dont expose the underlying connection layer.
   // We will consider 1 connection per table for now.
   // Later maybe use a connection pool if needed.

@@ -4,13 +4,12 @@
 #include "database.h"
 #include "iterator.h"
 
-
 namespace bangdown {
 
 v8::Persistent<v8::FunctionTemplate> iterator_constructor;
 
 Iterator::Iterator (
-    Database* db,
+    Database* db
   , char* skey
   , char* ekey
 ) : db(db)
