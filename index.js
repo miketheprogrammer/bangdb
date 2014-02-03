@@ -33,5 +33,13 @@ for (var i = 0; i < 100; i += 1) {
 
 console.log('Test took ', new Date() - start);
 console.log('Closing Database')
+
+console.log('Iterator');
+console.log(bd.iterator);
+var iter = bd.iterator('key0', 'key98');
+console.log(iter);
+console.log(iter.next);
+console.log(iter.next());
+
 bd.close('data');
 bd.free();

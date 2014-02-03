@@ -83,8 +83,8 @@ NAN_METHOD(Iterator::New) {
 
   Database* database = node::ObjectWrap::Unwrap<Database>(args[0]->ToObject());
 
-  v8::Local<v8::String> skey = args[1];
-  v8::Local<v8::String> ekey = args[2];
+  v8::Local<v8::String> skey = args[1].As<v8::String>();
+  v8::Local<v8::String> ekey = args[2].As<v8::String>();
 
   Iterator* iterator = new Iterator(
       database
@@ -97,20 +97,22 @@ NAN_METHOD(Iterator::New) {
 }
 
 NAN_METHOD(Iterator::Next) {
+  NanScope();
   Iterator* iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
 
   std::string key;
   std::string value;
 
-  iterator->IteratorNext(&key, &value);
+  iterator->IteratorNext(key, value);
 
-  NanReturnValue(value);
+  NanReturnValue(v8::String::New(value.c_str()));
 }
 
 NAN_METHOD(Iterator::Peek) {
+  NanScope();
   Iterator* iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
 
-  NanReturnValue(iterator->IteratorPeekNext());
+  NanReturnValue(v8::Boolean::New(iterator->IteratorPeekNext()));
 
 }
 }

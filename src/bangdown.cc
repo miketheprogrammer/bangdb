@@ -6,6 +6,7 @@
 #include <string.h>
 #include "bangdown.h"
 #include "database.h"
+#include "iterator.h"
 namespace bangdown {
 
   void Init(v8::Handle<v8::Object> exports) { 
