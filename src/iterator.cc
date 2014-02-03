@@ -29,6 +29,12 @@ Iterator::Iterator (
 
 }
 
+Iterator::~Iterator (
+  ) {
+
+};
+
+
 bool Iterator::IteratorNext (std::string& key, std::string& value) {
   if(rs->hasNext()) {
     key.assign((char* )rs->getNextKey()->data, rs->getNextKey()->length);
