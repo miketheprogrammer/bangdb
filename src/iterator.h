@@ -30,6 +30,7 @@ public:
   bool IteratorNext(std::string& key, std::string& value); // Has Next; move iter; out key:val
   bool IteratorPeekNext(); // Is there more data coming
   bool IteratorClose();
+  bool IteratorEnd();
   resultset* NewIterator(char* skey, char* ekey);
   
 private:
