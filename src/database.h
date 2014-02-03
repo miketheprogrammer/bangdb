@@ -9,7 +9,7 @@
 #include "nan.h"
 #include "iterator.h"
 
-namespace bangdown {
+namespace bangdb {
 
 NAN_METHOD(Bang);
 

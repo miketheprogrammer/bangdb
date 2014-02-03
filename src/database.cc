@@ -6,7 +6,7 @@
 #include <bangdb/database.h>
 #include <bangdb/resultset.h>
 #include "autodestroy.h"
-namespace bangdown {
+namespace bangdb {
 static v8::Persistent<v8::FunctionTemplate> database_constructor;
 
 Database::Database (char* name) : name(name) {

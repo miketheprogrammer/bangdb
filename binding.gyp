@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "bangdown",
+      "target_name": "bangdb",
       "conditions": [
          ['OS == "linux"', {
               'libraries': [

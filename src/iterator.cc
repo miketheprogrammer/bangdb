@@ -4,7 +4,7 @@
 #include "database.h"
 #include "iterator.h"
 
-namespace bangdown {
+namespace bangdb {
 
 v8::Persistent<v8::FunctionTemplate> iterator_constructor;
 

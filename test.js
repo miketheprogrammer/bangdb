@@ -1,8 +1,8 @@
-var bangdown = require('bindings')('bangdown.node').bangdown;
+var bangdb = require('bindings')('bangdb.node').bangdown;
 
-console.log(bangdown);
-console.log('Creating Bangodwn DB Interface');
-var bd = bangdown('newdbxe');
+console.log(bangdb);
+console.log('Creating Bangdb DB Interface');
+var bd = bangdb('newdbxe');
 console.log('Done creating interface');
 console.log("Testing Open Put Get");
 

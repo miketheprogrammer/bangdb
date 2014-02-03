@@ -3,9 +3,9 @@
 
 #include <node.h>
 #include "nan.h"
-#include "bangdown.h"
+#include "bangdb.h"
 #include "database.h"
-namespace bangdown {
+namespace bangdb {
 
 class Database;
 
