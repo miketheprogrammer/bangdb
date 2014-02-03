@@ -15,8 +15,8 @@ public:
   static void Init();
   static v8::Local<v8::Object> NewInstance (
       v8::Local<v8::Object> db
-    , char* skey
-    , char* ekey
+    , v8::Local<v8::String> skey
+    , v8::Local<v8::String> ekey
   );
 
   Iterator (

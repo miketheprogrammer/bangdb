@@ -60,8 +60,8 @@ void Iterator::Init () {
 
 v8::Local<v8::Object> Iterator::NewInstance (
         v8::Local<v8::Object> db
-      , char* skey
-      , char* ekey
+      , v8::Local<v8::String> skey
+      , v8::Local<v8::String> ekey
     ) {
 
   NanScope();
@@ -70,7 +70,7 @@ v8::Local<v8::Object> Iterator::NewInstance (
   v8::Local<v8::FunctionTemplate> constructorHandle =
       NanPersistentToLocal(iterator_constructor);
 
-  v8::Handle<v8::Value> argv[3] = { db, skey, ekey };
+  v8::Handle<v8::Value> argv[3] = { db, (v8::Value)skey, (v8::Value)ekey };
   instance = constructorHandle->GetFunction()->NewInstance(3, argv);
 
   return instance;
@@ -80,8 +80,8 @@ NAN_METHOD(Iterator::New) {
 
   Database* database = node::ObjectWrap::Unwrap<Database>(args[0]->ToObject());
 
-  char* skey = args[1];
-  char* ekey = args[2];
+  v8::Local<v8::String> skey = args[1];
+  v8::Local<v8::String> ekey = args[2];
 
   Iterator* iterator = new Iterator(
       database
