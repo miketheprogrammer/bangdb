@@ -11,6 +11,7 @@ namespace bangdown {
   void Init(v8::Handle<v8::Object> exports) { 
 
     Database::Init();
+    bangdown::Iterator::Init();
     v8::Local<v8::Function> bangdown = v8::FunctionTemplate::New(Bang)->GetFunction();
 
     exports->Set(NanSymbol("bangdown"), bangdown);
