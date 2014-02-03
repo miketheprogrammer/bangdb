@@ -39,7 +39,9 @@ console.log(bd.iterator);
 var iter = bd.iterator('key0', 'key98');
 console.log(iter);
 console.log(iter.next);
-console.log(iter.next());
-
+var v;
+while(v = iter.next()) {
+  console.log(v);
+}
 bd.close('data');
 bd.free();

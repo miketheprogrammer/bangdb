@@ -39,9 +39,11 @@ bool Iterator::IteratorNext (std::string& key, std::string& value) {
   if(rs->hasNext()) {
     key.assign((char* )rs->getNextKey()->data, rs->getNextKey()->length);
     value.assign((char* )rs->getNextVal()->data, rs->getNextVal()->length);
+    rs->moveNext();
+    return true;    
   }
 
-  return true;
+  return false;
 }
 
 bool Iterator::IteratorPeekNext() {
