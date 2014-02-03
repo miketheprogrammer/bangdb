@@ -21,8 +21,8 @@ public:
 
   Iterator (
       Database* db
-    , char* skey
-    , char* ekey
+    , v8::Local<v8::String> skey
+    , v8::Local<v8::String> ekey
   );
 
   ~Iterator();
@@ -36,8 +36,8 @@ public:
 private:
     Database* db;
     resultset* rs;
-    char* skey;
-    char* ekey;
+    v8::Local<v8::String> skey;
+    v8::Local<v8::String> ekey;
 
     v8::Persistent<v8::Object> persistentHandle;
 

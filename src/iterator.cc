@@ -10,8 +10,8 @@ v8::Persistent<v8::FunctionTemplate> iterator_constructor;
 
 Iterator::Iterator (
     Database* db
-  , char* skey
-  , char* ekey
+  , v8::Local<v8::String> skey
+  , v8::Local<v8::String> ekey
 ) : db(db)
   , skey(skey)
   , ekey(ekey)
@@ -22,7 +22,10 @@ Iterator::Iterator (
 
   NanAssignPersistent(v8::Object, persistentHandle, obj);
 
-  rs = db->NewIterator(skey, ekey);
+  rs = db->NewIterator(
+      NanFromV8String(skey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS), 
+      NanFromV8String(ekey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS)
+  );
 
 }
 
@@ -70,7 +73,7 @@ v8::Local<v8::Object> Iterator::NewInstance (
   v8::Local<v8::FunctionTemplate> constructorHandle =
       NanPersistentToLocal(iterator_constructor);
 
-  v8::Handle<v8::Value> argv[3] = { db, (v8::Value)skey, (v8::Value)ekey };
+  v8::Handle<v8::Value> argv[3] = { db, skey, ekey };
   instance = constructorHandle->GetFunction()->NewInstance(3, argv);
 
   return instance;

@@ -213,14 +213,15 @@ NAN_METHOD(Database::Iterator) {
   //v8::Local<v8::String> skey = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
   //v8::Local<v8::String> ekey = NanFromV8String(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
-  v8::Local<v8::String> skey = args[0];
-  v8::Local<v8::String> ekey = args[1];
+  v8::Local<v8::String> skey = args[0].As<v8::String>();
+  v8::Local<v8::String> ekey = args[1].As<v8::String>();
   v8::TryCatch try_catch;
   v8::Local<v8::Object> iteratorHandle = Iterator::NewInstance(
       args.This()
     , skey
     , ekey
   );
+
   if (try_catch.HasCaught()) {
     node::FatalException(try_catch);
   }
