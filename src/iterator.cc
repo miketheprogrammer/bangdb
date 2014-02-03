@@ -22,10 +22,9 @@ Iterator::Iterator (
 
   NanAssignPersistent(v8::Object, persistentHandle, obj);
 
-  rs = db->NewIterator(
-      NanFromV8String(skey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS), 
-      NanFromV8String(ekey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS)
-  );
+  c_skey = NanFromV8String(skey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  c_ekey = NanFromV8String(ekey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  rs = db->NewIterator(c_skey, c_ekey);
 
 }
 
@@ -41,9 +40,27 @@ bool Iterator::IteratorNext (std::string& key, std::string& value) {
     value.assign((char* )rs->getNextVal()->data, rs->getNextVal()->length);
     rs->moveNext();
     return true;    
-  }
+  } else {
+    if (rs->moreDataToCome()) {
+      char* sk = (char*) rs->lastEvaluatedKey()->data;
+      char* ek = c_ekey;
+      rs->clear();
+      delete rs;
 
-  return false;
+      rs = db->NewIterator(sk, ek);
+
+      if (rs->hasNext()) {
+        key.assign((char* )rs->getNextKey()->data, rs->getNextKey()->length);
+        value.assign((char* )rs->getNextVal()->data, rs->getNextVal()->length);
+        rs->moveNext();
+        return true;
+      } else {
+      }
+      return false;
+    } else {
+    }
+    return false;
+  }
 }
 
 bool Iterator::IteratorPeekNext() {

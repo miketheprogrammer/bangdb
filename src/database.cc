@@ -98,7 +98,10 @@ FDT* Database::GetValue(char* key) {
 }
 
 resultset* Database::NewIterator (char* skey, char* ekey) {
-  return bangconnection->scan(skey, ekey);
+
+  resultset* rs = bangconnection->scan(skey, ekey);
+
+  return rs;
 }
 
 NAN_METHOD(Database::New) {

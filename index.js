@@ -24,24 +24,40 @@ console.log('put done');
 
 var start = new Date();
 var key, val;
-for (var i = 0; i < 100; i += 1) {
+var limit = 100000;
+for (var i = 0; i < limit; i += 1) {
   key = 'key' + i;
-  bd.put(key, key);
+  bd.put(key, 'val'+i);
   val = bd.get(key);
+//  console.log(val);
 }
 
 
 console.log('Test took ', new Date() - start);
-console.log('Closing Database')
 
 console.log('Iterator');
 console.log(bd.iterator);
-var iter = bd.iterator('key0', 'key98');
+console.log('New Stream', 'key0', 'key'+(limit));
+var iter = bd.iterator('key0', 'key'+(limit));
 console.log(iter);
 console.log(iter.next);
+
 var v;
-while(v = iter.next()) {
-  console.log(v);
+var tmp;
+var count = 0;
+var con = true;
+console.log('Starting Iterator Benchmark');
+start = new Date();
+while(con) {
+  tmp = iter.next();
+  if (tmp.length != 0)
+    v = tmp;
+  else con = false;
+  count += 1;
+  //console.log(v);
 }
+console.log('Test took ', new Date() - start, 'And Ended with Val', v, 'and count of', count);
+console.log(bd.get('key29000'));
+console.log('Closing Database')
 bd.close('data');
 bd.free();

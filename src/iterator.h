@@ -38,7 +38,8 @@ private:
     resultset* rs;
     v8::Local<v8::String> skey;
     v8::Local<v8::String> ekey;
-
+    char* c_skey;
+    char* c_ekey;
     v8::Persistent<v8::Object> persistentHandle;
 
     bool GetIterator();
