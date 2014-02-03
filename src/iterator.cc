@@ -21,7 +21,7 @@ Iterator::Iterator (
 
   v8::Local<v8::Object> obj = v8::Object::New();
 
-  NanAssignPersisten(v8::Object, persistentHandle, obj);
+  NanAssignPersistent(v8::Object, persistentHandle, obj);
 
   rs = db->NewIterator(skey, ekey);
 
@@ -30,17 +30,17 @@ Iterator::Iterator (
 bool Iterator::IteratorNext (std::string& key, std::string& value) {
   if(rs->hasNext()) {
     key.assign((char* )rs->getNextKey()->data, rs->getNextKey()->length);
-    value.assing((char* )rs->getNextVal()->data, rs->getNextVal()->length);
+    value.assign((char* )rs->getNextVal()->data, rs->getNextVal()->length);
   }
 
-  return true
+  return true;
 }
 
-bool Iterator::Peek() {
+bool Iterator::IteratorPeekNext() {
   return rs->moreDataToCome();
 }
 
-bool Iterator::End() {
+bool Iterator::IteratorEnd() {
   if (rs != NULL) {
     rs->clear();
     delete rs;
@@ -108,7 +108,7 @@ NAN_METHOD(Iterator::Next) {
 NAN_METHOD(Iterator::Peek) {
   Iterator* iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
 
-  NanReturnValue(iterator->IteratorPeek());
+  NanReturnValue(iterator->IteratorPeekNext());
 
 }
 }
