@@ -1,8 +1,8 @@
-var bangdb = require('bindings')('bangdb.node').bangdb;
+var bangdb = require('./index');
 
 console.log(bangdb);
 console.log('Creating Bangdb DB Interface');
-var bd = bangdb('newdbxe');
+var bd = bangdb('test');
 console.log('Done creating interface');
 console.log("Testing Open Put Get");
 
@@ -24,9 +24,11 @@ console.log('put done');
 
 var start = new Date();
 var key, val;
-var limit = 100000;
+var limit = 5000;
+console.log('Iterating puts/gets');
 for (var i = 0; i < limit; i += 1) {
   key = 'key' + i;
+  //console.log(key);
   bd.put(key, 'val'+i);
   val = bd.get(key);
 //  console.log(val);
@@ -66,7 +68,6 @@ while(iter.hasNext()) {
   //console.log(v);
 }
 console.log('Test took ', new Date() - start, 'And Ended with Val', v, 'and count of', count);
-console.log(bd.get('key29000'));
 console.log('Closing Database')
 //bd.close('data');
 //bd.free();

@@ -6,8 +6,18 @@
 #include <bangdb/database.h>
 #include <bangdb/resultset.h>
 #include "autodestroy.h"
+
+using node::AtExit;
+
 namespace bangdb {
 static v8::Persistent<v8::FunctionTemplate> database_constructor;
+
+static void at_exit_destroy_db(void* arg) {
+  Database* obj = (Database*)arg;
+
+  obj->CloseTable((char*)"anyname");
+  obj->CloseDatabase();
+}
 
 Database::Database (char* name) : name(name) {
   this->OpenDatabase(name);
@@ -130,6 +140,7 @@ NAN_METHOD(Database::New) {
 
   Database* obj = new Database(name);
   //Shell::autoDestroy(obj);
+  AtExit(at_exit_destroy_db, obj);
   obj->Wrap(args.This());
 //  NanReturnUndefined();
   NanReturnValue(args.This());
