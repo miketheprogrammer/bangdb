@@ -8,7 +8,7 @@
 #include <bangdb/database.h>
 #include "nan.h"
 #include "iterator.h"
-
+#include "batch.h"
 namespace bangdb {
 
 NAN_METHOD(Bang);
@@ -32,13 +32,17 @@ public:
   // Later maybe use a connection pool if needed.
   // Since nodejs is primarily singlethreaded we dont need to worry.
 
-  int PutValue(char* key, char* val);
-  FDT* GetValue(char* key, std::string& value);
+  FILEOFF_T PutValue(char* key, char* val, void* txn_handle = NULL);
+  FDT* GetValue(char* key, std::string& value, void* txn_handle = NULL);
+  FILEOFF_T DeleteValue(char* key, void* txn_handle = NULL);
 
   const char* Name() const;
 
   Database (char* name);
   ~Database ();
+
+  //GET methods
+  database* GetDatabase();
 
 private:
   database* bangdb; // pointer to db file
@@ -48,12 +52,15 @@ private:
 
   // Public API Methods
   static NAN_METHOD(New);  // Initlizes. Private;
+
   static NAN_METHOD(Put); //PutValue
   static NAN_METHOD(Get); // GetValue
+  static NAN_METHOD(Delete);
 
   static NAN_METHOD(Open); // OpenTable
   static NAN_METHOD(Close); // CloseTable
   
+  static NAN_METHOD(Batch);
   static NAN_METHOD(Iterator);
   
   // Free is a pointer to CloseDatabase

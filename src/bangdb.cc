@@ -7,12 +7,14 @@
 #include "bangdb.h"
 #include "database.h"
 #include "iterator.h"
+#include "batch.h"
 namespace bangdb {
 
   void Init(v8::Handle<v8::Object> exports) { 
 
     Database::Init();
     bangdb::Iterator::Init();
+    bangdb::Batch::Init();
     v8::Local<v8::Function> bangdb = v8::FunctionTemplate::New(Bang)->GetFunction();
 
     exports->Set(NanSymbol("bangdb"), bangdb);

@@ -7,6 +7,7 @@
 #include <bangdb/resultset.h>
 #include "autodestroy.h"
 #include "database_async.h"
+#include "batch.h"
 using node::AtExit;
 
 namespace bangdb {
@@ -44,11 +45,12 @@ Database::~Database () {
 };
 
 const char* Database::Name() const { return name; }
+database* Database::GetDatabase() { return bangdb; }
 
 database* Database::OpenDatabase (
   char* location
     ) {
-  bangdb = new database((char*)location);
+  bangdb = new database((char*)location, NULL, DB_OPTIMISTIC_TRANSACTION);
   return bangdb;
 }
 
@@ -57,6 +59,7 @@ int Database::CloseDatabase () {
   bangdb = NULL; 
   return 1;
 }
+
 
 void Database::Init () {
   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Database::New);
@@ -67,8 +70,11 @@ void Database::Init () {
   //NODE_SET_PROTOTYPE_METHOD(tpl, "new", Database::New);
   NODE_SET_PROTOTYPE_METHOD(tpl, "put", Database::Put);
   NODE_SET_PROTOTYPE_METHOD(tpl, "get", Database::Get);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "del", Database::Delete);
+
   NODE_SET_PROTOTYPE_METHOD(tpl, "close", Database::Close);
   NODE_SET_PROTOTYPE_METHOD(tpl, "free", Database::Free);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "batch", Database::Batch);
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", Database::Iterator);
 }
 
@@ -95,7 +101,7 @@ int Database::CloseTable (char* tablename) {
   return 1;
 }
 
-int Database::PutValue(char* key, char* val) {
+FILEOFF_T Database::PutValue(char* key, char* val, void* txn_handle) {
 
   FDT ikey, ival;
 
@@ -104,21 +110,51 @@ int Database::PutValue(char* key, char* val) {
   ival.data = (void*)val;
   ival.length = strlen(val);
 
-  int flag = bangconnection->put(&ikey, &ival, INSERT_UPDATE); 
+  FILEOFF_T flag;
+  if (txn_handle == NULL) {
+    flag = bangconnection->put(&ikey, &ival, INSERT_UPDATE); 
+  } else {
+    flag = bangconnection->put(&ikey, &ival, INSERT_UPDATE, txn_handle); 
+  }
   return flag;
 }
 
-FDT* Database::GetValue(char* key, std::string& value) { 
+FDT* Database::GetValue(char* key, std::string& value, void* txn_handle) { 
 
   FDT ikey;
 
   ikey.data = key;
   ikey.length = strlen(key);
 
-  FDT* result = bangconnection->get(&ikey);
+  FDT* result;
+  if (txn_handle == NULL) {
+    result = bangconnection->get(&ikey);
+  } else {
+    result = bangconnection->get(&ikey, txn_handle);
+  }
  
-  value.assign((char*)result->data, result->length);
+  if (result != NULL) {
+    value.assign((char*)result->data, result->length);
+  } else {
+    value.assign("!ERROR!", 7);
+  } 
   return result;
+}
+
+FILEOFF_T Database::DeleteValue(char* key, void* txn_handle) {
+
+  FDT ikey;
+
+  ikey.data = key;
+  ikey.length = strlen(key);
+
+  FILEOFF_T flag;
+  if (txn_handle == NULL) {
+    flag = bangconnection->del(&ikey);
+  } else {
+    flag = bangconnection->del(&ikey, txn_handle);
+  }
+  return flag;
 }
 
 resultset* Database::NewIterator (char* skey, char* ekey) {
@@ -225,7 +261,11 @@ NAN_METHOD(Database::Get) {
   char* key = NanFromV8String(keyHandle.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
   if (callback->IsNull() || callback->IsUndefined()) {
     std::string out;
-    _db->GetValue(key, out)->free();
+    FDT* result = _db->GetValue(key, out);
+    if (result != NULL) {
+      result->free();
+    }
+
 
     NanReturnValue(v8::String::New(out.c_str()));
   } else {
@@ -244,6 +284,34 @@ NAN_METHOD(Database::Get) {
 
 }
 
+NAN_METHOD(Database::Delete) {
+  NanScope();
+
+  Database* _db = ObjectWrap::Unwrap<Database>(args.This());
+
+  v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
+  v8::Local<v8::Object> valueHandle = args[1].As<v8::Object>();
+  char* key = NanFromV8String(keyHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+
+  v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+
+  //If no callback execute sync
+  if (callback->IsNull() || callback->IsUndefined()) {
+    _db->DeleteValue(key);
+  } else {
+    DeleteWorker* worker  = new DeleteWorker(
+        _db
+      , new NanCallback(callback)
+      , key
+      , keyHandle
+    );
+    // persist to prevent accidental GC
+    v8::Local<v8::Object> _this = args.This();
+    worker->SavePersistent("database", _this);
+    NanAsyncQueueWorker(worker);
+  }
+  NanReturnUndefined();
+}
 NAN_METHOD(Bang){
   NanScope();
 
@@ -293,4 +361,13 @@ NAN_METHOD(Database::Iterator) {
 
   NanReturnValue(iteratorHandle);
 }
+
+
+NAN_METHOD(Database::Batch) {
+  NanScope();
+
+  NanReturnValue(Batch::NewInstance(args.This()));
+
+}
+
 }

@@ -86,7 +86,12 @@ ReadWorker::~ReadWorker () {
 
 void ReadWorker::Execute () {
   //FDT* Object
-  _db->GetValue(key, value)->free();
+  FDT* result = _db->GetValue(key, value);
+  if (result != NULL) {
+    result->free();
+  } else {
+    value.assign('!ERROR!', 7);
+  }
 }
 
 void ReadWorker::HandleOKCallback () {
@@ -123,6 +128,7 @@ DeleteWorker::~DeleteWorker () {}
 
 void DeleteWorker::Execute () {
   //database->DeleteFromDatabase(options, key));
+  _db->DeleteValue(key);
 }
 
 /** WRITE WORKER **/
@@ -146,6 +152,7 @@ WriteWorker::~WriteWorker () {}
 
 void WriteWorker::Execute () {
   //printf("WriteWorker::Execute\n");fflush(stdout);
+  FILEOFF_T result = _db->PutValue(key, val);
 }
 
 void WriteWorker::WorkComplete () {
