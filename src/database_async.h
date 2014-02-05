@@ -71,7 +71,7 @@ public:
   DeleteWorker (
       Database *_db
     , NanCallback *callback
-    , bool sync
+    , char* key
     , v8::Local<v8::Object> &keyHandle
   );
 
@@ -85,7 +85,8 @@ public:
   WriteWorker (
       Database *_db
     , NanCallback *callback
-    , bool sync
+    , char* key
+    , char* val
     , v8::Local<v8::Object> &keyHandle
     , v8::Local<v8::Object> &valueHandle
   );
@@ -94,6 +95,8 @@ public:
   virtual void Execute ();
   virtual void WorkComplete ();
 
+private:
+  char* val;
 };
 
 } // namespace bangdown

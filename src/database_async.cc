@@ -105,4 +105,55 @@ void ReadWorker::HandleOKCallback () {
   callback->Call(2, argv);
 }
 
+/** DELETE WORKER **/
+
+DeleteWorker::DeleteWorker (
+    Database *_db
+  , NanCallback *callback
+  , char* key
+  , v8::Local<v8::Object> &keyHandle
+) : IOWorker(_db, callback, key, keyHandle)
+{
+  NanScope();
+
+  SavePersistent("key", keyHandle);
+};
+
+DeleteWorker::~DeleteWorker () {}
+
+void DeleteWorker::Execute () {
+  //database->DeleteFromDatabase(options, key));
+}
+
+/** WRITE WORKER **/
+
+WriteWorker::WriteWorker (
+    Database *_db
+  , NanCallback *callback
+  , char* key
+  , char* val
+  , v8::Local<v8::Object> &keyHandle
+  , v8::Local<v8::Object> &valueHandle
+) : DeleteWorker(_db, callback, key, keyHandle)
+  , val(val)
+{
+  NanScope();
+
+  //SavePersistent("value", valueHandle);
+};
+
+WriteWorker::~WriteWorker () {}
+
+void WriteWorker::Execute () {
+  //printf("WriteWorker::Execute\n");fflush(stdout);
+}
+
+void WriteWorker::WorkComplete () {
+  NanScope();
+
+  IOWorker::WorkComplete();
+  //printf("WriteWorker::WorkComplete\n");fflush(stdout);
+}
+
+
 }

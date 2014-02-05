@@ -182,16 +182,30 @@ NAN_METHOD(Database::Free) {
 }
 
 NAN_METHOD(Database::Put) {
-    NanScope();
- 
-    Database* _db = ObjectWrap::Unwrap<Database>(args.This());
- 
-    char* key = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-    char* val = NanFromV8String(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  NanScope();
 
-    _db->PutValue(key, val);
+  Database* _db = ObjectWrap::Unwrap<Database>(args.This());
 
-    NanReturnUndefined();
+  v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
+  v8::Local<v8::Object> valueHandle = args[1].As<v8::Object>();
+  char* key = NanFromV8String(keyHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  char* val = NanFromV8String(valueHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+
+  v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+  WriteWorker* worker  = new WriteWorker(
+      _db
+    , new NanCallback(callback)
+    , key
+    , val
+    , keyHandle
+    , valueHandle
+  );
+  // persist to prevent accidental GC
+  v8::Local<v8::Object> _this = args.This();
+  worker->SavePersistent("database", _this);
+  NanAsyncQueueWorker(worker);
+
+  NanReturnUndefined();
 }
 
 NAN_METHOD(Database::Get) {
