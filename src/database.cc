@@ -43,6 +43,8 @@ Database::~Database () {
   //delete[] name;
 };
 
+const char* Database::Name() const { return name; }
+
 database* Database::OpenDatabase (
   char* location
     ) {
@@ -107,7 +109,7 @@ int Database::PutValue(char* key, char* val) {
   return flag;
 }
 
-FDT* Database::GetValue(char* key) { 
+FDT* Database::GetValue(char* key, std::string& value) { 
 
   FDT ikey;
 
@@ -116,7 +118,7 @@ FDT* Database::GetValue(char* key) {
 
   FDT* result = bangconnection->get(&ikey);
  
-
+  value.assign
   return result;
 }
 

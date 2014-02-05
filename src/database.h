@@ -35,6 +35,8 @@ public:
   int PutValue(char* key, char* val);
   FDT* GetValue(char* key);
 
+  const char* Name() const;
+
   Database (char* name);
   ~Database ();
 
