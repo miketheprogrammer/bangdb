@@ -33,7 +33,7 @@ public:
   // Since nodejs is primarily singlethreaded we dont need to worry.
 
   int PutValue(char* key, char* val);
-  FDT* GetValue(char* key);
+  FDT* GetValue(char* key, std::string& value);
 
   const char* Name() const;
 

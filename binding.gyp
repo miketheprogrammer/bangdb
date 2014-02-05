@@ -17,6 +17,7 @@
             "src/bangdb.cc"
             ,"src/database.cc"
             ,"src/iterator.cc"
+            ,"src/database_async.cc"
         ]
     }
   ]

@@ -9,9 +9,9 @@
 namespace bangdb {
 
 OpenWorker::OpenWorker (
-    Database *database
+    Database *_db
   , NanCallback *callback
-) : AsyncWorker(database, callback)
+) : AsyncWorker(_db, callback)
 {
 };
 
@@ -19,21 +19,21 @@ OpenWorker::~OpenWorker () {
 }
 
 void OpenWorker::Execute () {
-  database->OpenTable(database->Name());
+  _db->OpenTable((char*) _db->Name());
 }
 
 /** CLOSE WORKER **/
 
 CloseWorker::CloseWorker (
-    Database *database
+    Database *_db
   , NanCallback *callback
-) : AsyncWorker(database, callback)
+) : AsyncWorker(_db, callback)
 {};
 
 CloseWorker::~CloseWorker () {}
 
 void CloseWorker::Execute () {
-  database->CloseTable(database->Name());
+  _db->CloseTable((char*)_db->Name());
 }
 
 void CloseWorker::WorkComplete () {
@@ -46,10 +46,12 @@ void CloseWorker::WorkComplete () {
 /** IO WORKER (abstract) **/
 
 IOWorker::IOWorker (
-    Database *database
+    Database *_db
   , NanCallback *callback
+  , char* key
   , v8::Local<v8::Object> &keyHandle
-) : AsyncWorker(database, callback)
+) : AsyncWorker(_db, callback)
+, key(key)
 {
   NanScope();
 
@@ -61,21 +63,18 @@ IOWorker::~IOWorker () {}
 void IOWorker::WorkComplete () {
   NanScope();
 
-  DisposeStringOrBufferFromSlice(GetFromPersistent("key"), key);
+  //DisposeStringOrBufferFromSlice(GetFromPersistent("key"), key);
   AsyncWorker::WorkComplete();
 }
 
 /** READ WORKER **/
 
 ReadWorker::ReadWorker (
-    Database *database
+    Database *_db
   , NanCallback *callback
-  , leveldb::Slice key
-  , bool asBuffer
-  , bool fillCache
+  , char* key
   , v8::Local<v8::Object> &keyHandle
-) : IOWorker(database, callback, key, keyHandle)
-  , asBuffer(asBuffer)
+) : IOWorker(_db, callback, key, keyHandle)
 {
   NanScope();
 
@@ -83,18 +82,18 @@ ReadWorker::ReadWorker (
 };
 
 ReadWorker::~ReadWorker () {
-  delete options;
 }
 
 void ReadWorker::Execute () {
-  database->GetFromDatabase(options, key, value));
+  //FDT* Object
+  _db->GetValue(key, value)->free();
 }
 
 void ReadWorker::HandleOKCallback () {
   NanScope();
 
   v8::Local<v8::Value> returnValue;
-  if (asBuffer) {
+  if (false) {
     returnValue = NanNewBufferHandle((char*)value.data(), value.size());
   } else {
     returnValue = v8::String::New((char*)value.data(), value.size());

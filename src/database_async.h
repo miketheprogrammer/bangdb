@@ -12,18 +12,18 @@ namespace bangdb {
 class OpenWorker: public AsyncWorker {
   public:
     OpenWorker (
-        Database* database
+        Database* _db
       , NanCallback *callback
     );
 
   virtual ~OpenWorker();
   virtual void Execute();
-}
+};
 
 class CloseWorker : public AsyncWorker {
 public:
   CloseWorker (
-      Database *database
+      Database *_db
     , NanCallback *callback
   );
 
@@ -35,23 +35,25 @@ public:
 class IOWorker    : public AsyncWorker {
 public:
   IOWorker (
-      Database *database
+      Database *_db
     , NanCallback *callback
+    , char* key
     , v8::Local<v8::Object> &keyHandle
   );
 
   virtual ~IOWorker ();
   virtual void WorkComplete ();
 
+protected:
+  char* key;
 };
 
 class ReadWorker : public IOWorker {
 public:
   ReadWorker (
-      Database *database
+      Database *_db
     , NanCallback *callback
-    , bool asBuffer
-    , bool fillCache
+    , char* key
     , v8::Local<v8::Object> &keyHandle
   );
 
@@ -67,9 +69,8 @@ private:
 class DeleteWorker : public IOWorker {
 public:
   DeleteWorker (
-      Database *database
+      Database *_db
     , NanCallback *callback
-    , leveldb::Slice key
     , bool sync
     , v8::Local<v8::Object> &keyHandle
   );
@@ -77,14 +78,12 @@ public:
   virtual ~DeleteWorker ();
   virtual void Execute ();
 
-protected:
-  leveldb::WriteOptions* options;
 };
 
 class WriteWorker : public DeleteWorker {
 public:
   WriteWorker (
-      Database *database
+      Database *_db
     , NanCallback *callback
     , bool sync
     , v8::Local<v8::Object> &keyHandle

@@ -6,7 +6,7 @@
 #include <bangdb/database.h>
 #include <bangdb/resultset.h>
 #include "autodestroy.h"
-
+#include "database_async.h"
 using node::AtExit;
 
 namespace bangdb {
@@ -92,7 +92,6 @@ int Database::CloseTable (char* tablename) {
     bangtable->closetable();
     bangtable = NULL;
   }
-  printf("closing table");
   return 1;
 }
 
@@ -118,7 +117,7 @@ FDT* Database::GetValue(char* key, std::string& value) {
 
   FDT* result = bangconnection->get(&ikey);
  
-  value.assign
+  value.assign((char*)result->data, result->length);
   return result;
 }
 
@@ -199,13 +198,24 @@ NAN_METHOD(Database::Get) {
   NanScope();
 
   Database* _db = ObjectWrap::Unwrap<Database>(args.This());
+  v8::Local<v8::Function> callback;
 
-  char* key = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
+  callback = args[1].As<v8::Function>();   
 
-  FDT* result = _db->GetValue(key);
 
-  NanReturnValue(v8::String::New((char*)result->data));
-  result->free();
+  ReadWorker* worker = new ReadWorker(
+      _db
+    , new NanCallback(callback)
+    , (char*)NanFromV8String(keyHandle.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS)
+    , keyHandle
+  );
+
+  v8::Local<v8::Object> _this = args.This();
+  worker->SavePersistent("database", _this);
+  NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+
 }
 
 NAN_METHOD(Bang){

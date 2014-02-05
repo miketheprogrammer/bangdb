@@ -17,16 +17,16 @@ class Database;
 /* abstract */ class AsyncWorker : public NanAsyncWorker {
 public:
   AsyncWorker (
-      bangdb::Database* database
+      bangdb::Database* _db
     , NanCallback *callback
-  ) : NanAsyncWorker(callback), database(database) {
+  ) : NanAsyncWorker(callback), _db(_db) {
     NanScope();
     v8::Local<v8::Object> obj = v8::Object::New();
     NanAssignPersistent(v8::Object, persistentHandle, obj);
   }
 
 protected:
-  Database* database;
+  Database* _db;
 };
 
 } // namespace leveldown
