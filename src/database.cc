@@ -192,19 +192,24 @@ NAN_METHOD(Database::Put) {
   char* val = NanFromV8String(valueHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
   v8::Local<v8::Function> callback = args[2].As<v8::Function>();
-  WriteWorker* worker  = new WriteWorker(
-      _db
-    , new NanCallback(callback)
-    , key
-    , val
-    , keyHandle
-    , valueHandle
-  );
-  // persist to prevent accidental GC
-  v8::Local<v8::Object> _this = args.This();
-  worker->SavePersistent("database", _this);
-  NanAsyncQueueWorker(worker);
 
+  //If no callback execute sync
+  if (callback->IsNull() || callback->IsUndefined()) {
+    _db->PutValue(key, val);
+  } else {
+    WriteWorker* worker  = new WriteWorker(
+        _db
+      , new NanCallback(callback)
+      , key
+      , val
+      , keyHandle
+      , valueHandle
+    );
+    // persist to prevent accidental GC
+    v8::Local<v8::Object> _this = args.This();
+    worker->SavePersistent("database", _this);
+    NanAsyncQueueWorker(worker);
+  }
   NanReturnUndefined();
 }
 
@@ -217,18 +222,25 @@ NAN_METHOD(Database::Get) {
   v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
   callback = args[1].As<v8::Function>();   
 
+  char* key = NanFromV8String(keyHandle.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  if (callback->IsNull() || callback->IsUndefined()) {
+    std::string out;
+    _db->GetValue(key, out)->free();
 
-  ReadWorker* worker = new ReadWorker(
-      _db
-    , new NanCallback(callback)
-    , (char*)NanFromV8String(keyHandle.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS)
-    , keyHandle
-  );
+    NanReturnValue(v8::String::New(out.c_str()));
+  } else {
+    ReadWorker* worker = new ReadWorker(
+        _db
+      , new NanCallback(callback)
+      , key
+      , keyHandle
+    );
 
-  v8::Local<v8::Object> _this = args.This();
-  worker->SavePersistent("database", _this);
-  NanAsyncQueueWorker(worker);
-  NanReturnUndefined();
+    v8::Local<v8::Object> _this = args.This();
+    worker->SavePersistent("database", _this);
+    NanAsyncQueueWorker(worker);
+    NanReturnUndefined();
+  }
 
 }
 
