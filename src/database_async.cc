@@ -73,6 +73,8 @@ ReadWorker::ReadWorker (
     Database *_db
   , NanCallback *callback
   , char* key
+  , bool asBuffer
+  , bool fillCache
   , v8::Local<v8::Object> &keyHandle
 ) : IOWorker(_db, callback, key, keyHandle)
 {
@@ -98,7 +100,7 @@ void ReadWorker::HandleOKCallback () {
   NanScope();
 
   v8::Local<v8::Value> returnValue;
-  if (false) {
+  if (asBuffer) {
     returnValue = NanNewBufferHandle((char*)value.data(), value.size());
   } else {
     returnValue = v8::String::New((char*)value.data(), value.size());

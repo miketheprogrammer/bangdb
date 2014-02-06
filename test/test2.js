@@ -1,4 +1,4 @@
-var bangdb = require('./index');
+var bangdb = require('../index');
 
 console.log(bangdb);
 console.log('Creating Bangdb DB Interface');
@@ -24,7 +24,7 @@ console.log('put done');
 
 var start = new Date();
 var key, val;
-var limit = 20000;
+var limit = 100000;
 console.log('Iterating puts/gets');
 for (var i = 0; i < limit; i += 1) {
   key = 'key' + i;

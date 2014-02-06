@@ -252,27 +252,28 @@ NAN_METHOD(Database::Put) {
 NAN_METHOD(Database::Get) {
   NanScope();
 
-  Database* _db = ObjectWrap::Unwrap<Database>(args.This());
-  v8::Local<v8::Function> callback;
-
+  BD_METHOD_SETUP_COMMON(get, 1, 2);
   v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
-  callback = args[1].As<v8::Function>();   
 
   char* key = NanFromV8String(keyHandle.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
   if (callback->IsNull() || callback->IsUndefined()) {
     std::string out;
     FDT* result = _db->GetValue(key, out);
     if (result != NULL) {
-      result->free();
+      //result->free();
     }
-
-
+    //NanReturnValue(NanNewBufferHandle((char*)result->data, result->length));
     NanReturnValue(v8::String::New(out.c_str()));
+
   } else {
+    bool asBuffer = NanBooleanOptionValue(optionsObj, NanSymbol("asBuffer"), true);
+    bool fillCache = NanBooleanOptionValue(optionsObj, NanSymbol("fillCache"), true);
     ReadWorker* worker = new ReadWorker(
         _db
       , new NanCallback(callback)
       , key
+      , asBuffer
+      , fillCache
       , keyHandle
     );
 

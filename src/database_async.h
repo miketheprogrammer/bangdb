@@ -54,6 +54,8 @@ public:
       Database *_db
     , NanCallback *callback
     , char* key
+    , bool asBuffer
+    , bool fillCache
     , v8::Local<v8::Object> &keyHandle
   );
 
