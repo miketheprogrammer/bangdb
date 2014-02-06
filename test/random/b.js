@@ -1,4 +1,4 @@
-db = require('./index')('data123');
+db = require('../../index')('data123');
 
 db.open('test123');
 

@@ -5,6 +5,7 @@
 #include "nan.h"
 #include "database.h"
 #include "batch.h"
+#include "batch_async.h"
 
 namespace bangdb {
 
@@ -92,9 +93,7 @@ NAN_METHOD(Batch::Del) {
     return NanThrowError("write() already called on this batch");
 
   v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
-  v8::Local<v8::Object> valueHandle = args[1].As<v8::Object>();
   char* key = NanFromV8String(keyHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-  char* val = NanFromV8String(valueHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
   batch->db->DeleteValue(key, batch->txn_handle);
 
@@ -129,10 +128,17 @@ NAN_METHOD(Batch::Write) {
   //if (args.Length() == 0)
   //  return NanThrowError("write() requires a callback argument");
 
-  batch->written = true;
 
+  batch->written = true;
   if (batch->hasData) {
-    batch->Write();
+    if (args.Length() == 0) {
+      batch->Write();
+    } else {
+      BatchWriteWorker* worker  = new BatchWriteWorker(batch, NULL);
+      v8::Local<v8::Object> _this = args.This();
+      worker->SavePersistent("batch", _this);
+      NanAsyncQueueWorker(worker);
+    }
   } else {
   }
 

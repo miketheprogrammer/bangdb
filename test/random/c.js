@@ -1,5 +1,5 @@
-db1 = require('./index')('data');
-db2 = require('./index')('data');
+db1 = require('../../index')('data');
+db2 = require('../../index')('data');
 
 db1.open('table1');
 db2.open('table2');

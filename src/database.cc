@@ -338,6 +338,7 @@ v8::Handle<v8::Value> Database::NewInstance (v8::Local<v8::String> &name) {
 
   return instance;
 }
+
 NAN_METHOD(Database::Iterator) {
   NanScope();
 
@@ -362,12 +363,58 @@ NAN_METHOD(Database::Iterator) {
   NanReturnValue(iteratorHandle);
 }
 
-
 NAN_METHOD(Database::Batch) {
   NanScope();
+  if ((args.Length() == 0 || args.Length() == 1) && !args[0]->IsArray()) { 
+    NanReturnValue(Batch::NewInstance(args.This()));
+  }
 
-  NanReturnValue(Batch::NewInstance(args.This()));
+  v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(args[0]);
 
+  Database* _db = ObjectWrap::Unwrap<Database>(args.This());
+
+  database* bdb = _db->GetDatabase();
+
+  v8::Local<v8::Function> callback = args[1].As<v8::Function>();
+  void* txn_handle = bdb->begin_transaction();
+  bool hasData = false;
+
+  for (unsigned int i = 0; i < array->Length(); i++) {
+    if(!array->Get(i)->IsObject())
+      continue;
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(array->Get(i));
+    v8::Local<v8::Value> keyHandle = obj->Get(NanSymbol("key"));
+    char* key = NanFromV8String(keyHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+    if (obj->Get(NanSymbol("type"))->StrictEquals(NanSymbol("del"))) {
+      _db->DeleteValue(key, txn_handle);
+      if (!hasData)
+        hasData = true;
+    } else if (obj->Get(NanSymbol("type"))->StrictEquals(NanSymbol("put"))) {
+      v8::Local<v8::Value> valueHandle = obj->Get(NanSymbol("value"));
+      char* value = NanFromV8String(valueHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+      _db->PutValue(key, value, txn_handle);
+      if (!hasData)
+        hasData = true;
+    }
+  }
+  if (hasData) {
+    BatchWorker* worker = new BatchWorker(
+        _db
+      , new NanCallback(callback)
+      , txn_handle
+      , array
+    );
+    v8::Local<v8::Object> _this = args.This();
+    v8::Local<v8::Object> arr = v8::Local<v8::Object>::Cast(array);
+    worker->SavePersistent("_db", _this);
+    worker->SavePersistent("array", arr);
+    NanAsyncQueueWorker(worker);
+  } else {
+    //node::MakeCallback(                                                          \
+    //  v8::Context::GetCurrent()->Global(), callback, 0, NULL);
+  }
+  
+  NanReturnUndefined();
 }
 
 }

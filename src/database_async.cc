@@ -162,5 +162,25 @@ void WriteWorker::WorkComplete () {
   //printf("WriteWorker::WorkComplete\n");fflush(stdout);
 }
 
+BatchWorker::BatchWorker (
+    Database *_db
+  , NanCallback *callback
+  , void* txn_handle
+  , v8::Local<v8::Array> array
+) : AsyncWorker(_db, callback)
+  , txn_handle(txn_handle)
+  , array(array)
+{};
 
+BatchWorker::~BatchWorker () {}
+
+void BatchWorker::Execute () {
+  _db->GetDatabase()->commit_transaction(&txn_handle);
+}
+void BatchWorker::WorkComplete () {
+  NanScope();
+  HandleOKCallback();
+  delete callback;
+  callback = NULL;
+}
 }

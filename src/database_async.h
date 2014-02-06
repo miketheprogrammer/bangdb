@@ -99,6 +99,22 @@ private:
   char* val;
 };
 
+class BatchWorker : public AsyncWorker {
+public:
+  BatchWorker (
+      Database *_db
+    , NanCallback *callback
+    , void* txn_handle
+    , v8::Local<v8::Array> array
+  );
+
+  virtual ~BatchWorker ();
+  virtual void Execute ();
+  virtual void WorkComplete ();
+private:
+  void* txn_handle;
+  v8::Local<v8::Array> array;
+};
 } // namespace bangdown
 
 #endif

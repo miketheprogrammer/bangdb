@@ -19,6 +19,7 @@
             ,"src/iterator.cc"
             ,"src/database_async.cc"
             ,"src/batch.cc"
+            ,"src/batch_async.cc"
         ]
     }
   ]
