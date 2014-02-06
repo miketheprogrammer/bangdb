@@ -6,7 +6,7 @@ function time(name, start, end) {
   console.log(name, "took:", end - start, "ms");
 }
 
-var put_count = 100000;
+var put_count = 1000;
 var get_count = put_count;
 
 
@@ -18,10 +18,10 @@ function put(count, tme) {
   db.put(idx,idx, function(err, res) {
     count -= 1;
     if (count >= 0)
-      return setImmediate(put.bind(null, count, tme));
+      put(count,tme);//return setImmediate(put.bind(null, count, tme));
     else {
       time('PUT', tme, new Date());
-      return get(get_count, new Date());
+      //return get(get_count, new Date());
     }
   });
 }
