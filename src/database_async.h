@@ -107,7 +107,7 @@ public:
       Database *_db
     , NanCallback *callback
     , void* txn_handle
-    , v8::Local<v8::Array> array
+    , v8::Local<v8::Object> array
   );
 
   virtual ~BatchWorker ();
@@ -115,7 +115,7 @@ public:
   virtual void WorkComplete ();
 private:
   void* txn_handle;
-  v8::Local<v8::Array> array;
+  v8::Local<v8::Object> array;
 };
 } // namespace bangdown
 

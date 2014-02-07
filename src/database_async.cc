@@ -168,11 +168,13 @@ BatchWorker::BatchWorker (
     Database *_db
   , NanCallback *callback
   , void* txn_handle
-  , v8::Local<v8::Array> array
+  , v8::Local<v8::Object> array
 ) : AsyncWorker(_db, callback)
   , txn_handle(txn_handle)
   , array(array)
-{};
+{
+  printf("saving persistent\n");
+};
 
 BatchWorker::~BatchWorker () {}
 

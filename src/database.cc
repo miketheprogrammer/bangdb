@@ -398,17 +398,16 @@ NAN_METHOD(Database::Batch) {
         hasData = true;
     }
   }
+  v8::Local<v8::Object> arr = v8::Local<v8::Object>::Cast(array);
   if (hasData) {
     BatchWorker* worker = new BatchWorker(
         _db
       , new NanCallback(callback)
       , txn_handle
-      , array
+      , arr
     );
     v8::Local<v8::Object> _this = args.This();
-    v8::Local<v8::Object> arr = v8::Local<v8::Object>::Cast(array);
     worker->SavePersistent("_db", _this);
-    worker->SavePersistent("array", arr);
     NanAsyncQueueWorker(worker);
   } else {
     //node::MakeCallback(                                                          \
