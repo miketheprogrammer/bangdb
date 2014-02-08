@@ -1,6 +1,7 @@
 bangdb
 ======
 
+(Not Ready for Public Use Yet)
 Specific API Readme to come.
 
 
