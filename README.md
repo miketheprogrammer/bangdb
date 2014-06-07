@@ -32,3 +32,5 @@ Mentions:
 The devs of [node-leveldown](https://github.com/rvagg/node-leveldown)Project.
 Whom have done alot of work in the node database community, and where I learned how to begin to tackle this project.
 
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/miketheprogrammer/bangdb/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
