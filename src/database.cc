@@ -269,8 +269,8 @@ NAN_METHOD(Database::Get) {
     if (result != NULL) {
       //result->free();
     }
-    NanReturnValue(NanNewBufferHandle((char*)result->data, result->length));
-    //NanReturnValue(v8::String::New(out.c_str()));
+    //NanReturnValue(NanNewBufferHandle((char*)result->data, result->length));
+    NanReturnValue(v8::String::New(out.c_str()));
 
   } else {
     bool asBuffer = NanBooleanOptionValue(optionsObj, NanSymbol("asBuffer"), true);
