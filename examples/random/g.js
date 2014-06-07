@@ -21,17 +21,18 @@ function _batch(batch, count, tme) {
     batch.put(idx,idx);
     if (count % 1000 == 0) {
         console.log(count, 'done');
-        time("BATCH", tme, new Date());
+        
         batch.write();
+        time("BATCH", tme, new Date());
         batch = db.batch();
-        return setImmediate(_batch.bind(null,batch, count, tme))
+        return setImmediate(_batch.bind(null,batch, count, new Date()))
     } else {
       return _batch(batch, count, tme);
     }
 
   }
-  console.log('Writing batch');
-  batch.write();
+  //console.log('Writing batch');
+  //batch.write();
 
   time('BATCH', tme, new Date());
 }

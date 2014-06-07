@@ -173,7 +173,7 @@ BatchWorker::BatchWorker (
   , txn_handle(txn_handle)
   , array(array)
 {
-  printf("saving persistent\n");
+  //printf("saving persistent\n");
 };
 
 BatchWorker::~BatchWorker () {}

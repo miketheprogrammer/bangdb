@@ -54,8 +54,8 @@ bool Iterator::IteratorNext (std::string& key, std::string& value) {
         value.assign((char* )rs->getNextVal()->data, rs->getNextVal()->length);
         rs->moveNext();
         return true;
-      } else {
-      }
+      } 
+      
       return false;
     } else {
     }

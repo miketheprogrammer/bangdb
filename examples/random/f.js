@@ -37,3 +37,4 @@ function get(count, tme) {
 }
 
 put(put_count, new Date());
+get(get_count, new Date());

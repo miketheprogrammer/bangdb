@@ -158,8 +158,15 @@ FILEOFF_T Database::DeleteValue(char* key, void* txn_handle) {
 }
 
 resultset* Database::NewIterator (char* skey, char* ekey) {
+  scan_filter sf;
+  
+  //let's override the default way of scanning
+  sf.skey_op = GTE;
+  sf.ekey_op = LTE;
+  sf.limitby = LIMIT_RESULT_ROW;
+  sf.limit = 1000;  //1000 rows
 
-  resultset* rs = bangconnection->scan(skey, ekey);
+  resultset* rs = bangconnection->scan(skey, ekey, &sf);
 
   return rs;
 }
@@ -262,8 +269,8 @@ NAN_METHOD(Database::Get) {
     if (result != NULL) {
       //result->free();
     }
-    //NanReturnValue(NanNewBufferHandle((char*)result->data, result->length));
-    NanReturnValue(v8::String::New(out.c_str()));
+    NanReturnValue(NanNewBufferHandle((char*)result->data, result->length));
+    //NanReturnValue(v8::String::New(out.c_str()));
 
   } else {
     bool asBuffer = NanBooleanOptionValue(optionsObj, NanSymbol("asBuffer"), true);

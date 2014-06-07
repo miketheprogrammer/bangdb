@@ -49,7 +49,8 @@ private:
   table* bangtable; // 
   connection* bangconnection;
   char* name;
-
+  uint32_t currentIteratorId;
+  std::map< uint32_t, resultset* > iterators;
   // Public API Methods
   static NAN_METHOD(New);  // Initlizes. Private;
 

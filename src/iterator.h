@@ -34,6 +34,10 @@ public:
   bool IteratorEnd();
   resultset* NewIterator(char* skey, char* ekey);
   
+  bool keyAsBuffer;
+  bool valueAsBuffer;
+  bool nexting;
+  bool ended;
 private:
     Database* db;
     resultset* rs;

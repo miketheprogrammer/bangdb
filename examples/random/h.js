@@ -5,7 +5,7 @@ db.open('put_benchmark');
 batch = db.batch();
 
 
-batch_count = 200;
+batch_count = 1000;
 
 function time(name, start, end) {
   console.log(name, 'took', end - start, 'ms');

@@ -3,7 +3,7 @@ db.open('testbatch');
 
 batch = db.batch();
 
-batch = batch.put('one', 'two')
+batch = batch.put('one', 'onex')
 .put('two', 'two')
 .put('three', 'three')
 .delete('two','two')
