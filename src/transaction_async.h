@@ -3,31 +3,31 @@
  * MIT +no-false-attribs License <https://github.com/rvagg/node-leveldown/blob/master/LICENSE>
  */
 
-#ifndef BD_BATCH_ASYNC_H
-#define BD_BATCH_ASYNC_H
+#ifndef BD_TRANSACTION_ASYNC_H
+#define BD_TRANSACTION_ASYNC_H
 
 #include <node.h>
 
 #include "nan.h"
 #include "async.h"
-#include "batch.h"
+#include "transaction.h"
 #include "database.h"
 #include <bangdb/database.h>
 
 namespace bangdb {
 
-class BatchWriteWorker : public AsyncWorker {
+class TransactionWriteWorker : public AsyncWorker {
 public:
-  BatchWriteWorker (
-      Batch* batch
+  TransactionWriteWorker (
+      Transaction* transaction
     , NanCallback *callback
   );
 
-  virtual ~BatchWriteWorker ();
+  virtual ~TransactionWriteWorker ();
   virtual void Execute ();
   virtual void WorkComplete ();
 private:
-  Batch* batch;
+  Transaction* transaction;
 };
 
 } // namespace leveldown

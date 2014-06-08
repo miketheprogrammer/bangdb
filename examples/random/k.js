@@ -10,7 +10,7 @@ function time(name, start, end, suffix) {
 var start = new Date();
 
 for (var i = 0; i < (parseInt(process.argv[2]) || 1000); i += 1) {
-    var idx = i.toString()
+    var idx = i.toString();
     db.get(idx);
 }
 

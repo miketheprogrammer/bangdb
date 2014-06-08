@@ -18,8 +18,8 @@
             ,"src/database.cc"
             ,"src/iterator.cc"
             ,"src/database_async.cc"
-            ,"src/batch.cc"
-            ,"src/batch_async.cc"
+            ,"src/transaction.cc"
+            ,"src/transaction_async.cc"
         ]
     }
   ]

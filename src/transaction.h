@@ -1,5 +1,5 @@
-#ifndef BD_BATCH_H
-#define BD_BATCH_H
+#ifndef BD_TRANSACTION_H
+#define BD_TRANSACTION_H
 
 #include <vector>
 #include <node.h>
@@ -8,17 +8,17 @@
 
 namespace bangdb {
 
-class Batch : public node::ObjectWrap {
+class Transaction : public node::ObjectWrap {
 public:
   static void Init();
   static v8::Handle<v8::Value> NewInstance (
       v8::Handle<v8::Object> database
   );
 
-  Batch (bangdb::Database* db);
-  ~Batch ();
+  Transaction (bangdb::Database* db);
+  ~Transaction ();
 
-  long Write();
+  long Commit();
 
 private:
   bangdb::Database* db;
@@ -30,7 +30,7 @@ private:
   static NAN_METHOD(Put);
   static NAN_METHOD(Del);
   static NAN_METHOD(Clear);
-  static NAN_METHOD(Write);
+  static NAN_METHOD(Commit);
 };
 
 }

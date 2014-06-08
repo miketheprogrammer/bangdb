@@ -7,7 +7,7 @@
 #include <bangdb/resultset.h>
 #include "autodestroy.h"
 #include "database_async.h"
-#include "batch.h"
+#include "transaction.h"
 using node::AtExit;
 
 namespace bangdb {
@@ -74,7 +74,7 @@ void Database::Init () {
 
   NODE_SET_PROTOTYPE_METHOD(tpl, "close", Database::Close);
   NODE_SET_PROTOTYPE_METHOD(tpl, "free", Database::Free);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "batch", Database::Batch);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "transaction", Database::Transaction);
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", Database::Iterator);
 }
 
@@ -266,12 +266,13 @@ NAN_METHOD(Database::Get) {
   if (callback->IsNull() || callback->IsUndefined()) {
     std::string out;
     FDT* result = _db->GetValue(key, out);
-    if (result != NULL) {
-      //result->free();
-    }
+
     //NanReturnValue(NanNewBufferHandle((char*)result->data, result->length));
     NanReturnValue(v8::String::New(out.c_str()));
 
+    if (result != NULL) {
+      result->free();
+    }
   } else {
     bool asBuffer = NanBooleanOptionValue(optionsObj, NanSymbol("asBuffer"), true);
     bool fillCache = NanBooleanOptionValue(optionsObj, NanSymbol("fillCache"), true);
@@ -371,10 +372,10 @@ NAN_METHOD(Database::Iterator) {
   NanReturnValue(iteratorHandle);
 }
 
-NAN_METHOD(Database::Batch) {
+NAN_METHOD(Database::Transaction) {
   NanScope();
   if ((args.Length() == 0 || args.Length() == 1) && !args[0]->IsArray()) { 
-    NanReturnValue(Batch::NewInstance(args.This()));
+    NanReturnValue(Transaction::NewInstance(args.This()));
   }
 
   v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(args[0]);
@@ -407,7 +408,7 @@ NAN_METHOD(Database::Batch) {
   }
   v8::Local<v8::Object> arr = v8::Local<v8::Object>::Cast(array);
   if (hasData) {
-    BatchWorker* worker = new BatchWorker(
+    TransactionWorker* worker = new TransactionWorker(
         _db
       , new NanCallback(callback)
       , txn_handle

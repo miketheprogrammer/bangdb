@@ -164,7 +164,7 @@ void WriteWorker::WorkComplete () {
   //printf("WriteWorker::WorkComplete\n");fflush(stdout);
 }
 
-BatchWorker::BatchWorker (
+TransactionWorker::TransactionWorker (
     Database *_db
   , NanCallback *callback
   , void* txn_handle
@@ -176,12 +176,12 @@ BatchWorker::BatchWorker (
   //printf("saving persistent\n");
 };
 
-BatchWorker::~BatchWorker () {}
+TransactionWorker::~TransactionWorker () {}
 
-void BatchWorker::Execute () {
+void TransactionWorker::Execute () {
   _db->GetDatabase()->commit_transaction(&txn_handle);
 }
-void BatchWorker::WorkComplete () {
+void TransactionWorker::WorkComplete () {
   NanScope();
   HandleOKCallback();
   delete callback;

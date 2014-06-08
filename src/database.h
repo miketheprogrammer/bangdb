@@ -8,7 +8,7 @@
 #include <bangdb/database.h>
 #include "nan.h"
 #include "iterator.h"
-#include "batch.h"
+#include "transaction.h"
 namespace bangdb {
 
 NAN_METHOD(Bang);
@@ -61,7 +61,7 @@ private:
   static NAN_METHOD(Open); // OpenTable
   static NAN_METHOD(Close); // CloseTable
   
-  static NAN_METHOD(Batch);
+  static NAN_METHOD(Transaction);
   static NAN_METHOD(Iterator);
   
   // Free is a pointer to CloseDatabase

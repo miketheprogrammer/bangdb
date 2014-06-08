@@ -101,16 +101,16 @@ private:
   char* val;
 };
 
-class BatchWorker : public AsyncWorker {
+class TransactionWorker : public AsyncWorker {
 public:
-  BatchWorker (
+  TransactionWorker (
       Database *_db
     , NanCallback *callback
     , void* txn_handle
     , v8::Local<v8::Object> array
   );
 
-  virtual ~BatchWorker ();
+  virtual ~TransactionWorker ();
   virtual void Execute ();
   virtual void WorkComplete ();
 private:
