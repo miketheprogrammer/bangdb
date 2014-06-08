@@ -2,7 +2,7 @@
 #include <node.h> 
 #include <node_buffer.h>
 #include "database.h"
-#include "iterator.h"
+#include "scan.h"
 #include <bangdb/database.h>
 #include <bangdb/resultset.h>
 #include "autodestroy.h"
@@ -75,7 +75,7 @@ void Database::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "close", Database::Close);
   NODE_SET_PROTOTYPE_METHOD(tpl, "free", Database::Free);
   NODE_SET_PROTOTYPE_METHOD(tpl, "transaction", Database::Transaction);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", Database::Iterator);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "scan", Database::Scan);
 }
 
 /*
@@ -157,7 +157,7 @@ FILEOFF_T Database::DeleteValue(char* key, void* txn_handle) {
   return flag;
 }
 
-resultset* Database::NewIterator (char* skey, char* ekey) {
+resultset* Database::NewScan (char* skey, char* ekey) {
   scan_filter sf;
   
   //let's override the default way of scanning
@@ -348,7 +348,7 @@ v8::Handle<v8::Value> Database::NewInstance (v8::Local<v8::String> &name) {
   return instance;
 }
 
-NAN_METHOD(Database::Iterator) {
+NAN_METHOD(Database::Scan) {
   NanScope();
 
   Database* database = node::ObjectWrap::Unwrap<Database>(args.This());
@@ -359,7 +359,7 @@ NAN_METHOD(Database::Iterator) {
   v8::Local<v8::String> skey = args[0].As<v8::String>();
   v8::Local<v8::String> ekey = args[1].As<v8::String>();
   v8::TryCatch try_catch;
-  v8::Local<v8::Object> iteratorHandle = Iterator::NewInstance(
+  v8::Local<v8::Object> scanHandle = Scan::NewInstance(
       args.This()
     , skey
     , ekey
@@ -369,7 +369,7 @@ NAN_METHOD(Database::Iterator) {
     node::FatalException(try_catch);
   }
 
-  NanReturnValue(iteratorHandle);
+  NanReturnValue(scanHandle);
 }
 
 NAN_METHOD(Database::Transaction) {

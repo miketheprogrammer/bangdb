@@ -1,4 +1,4 @@
-db = require('../../index')('data');
+db = require('../../index').embedded('data');
 var microtime = require('microtime');
 db.open('batch_put_benchmark');
 var assert = require('assert');
@@ -9,7 +9,7 @@ function time(name, start, end, suffix) {
   console.log(name, 'took', end - start, suffix);
 }
 function test() {
-    batch_count = 1000000;
+    batch_count = 10000;
     var tme;
     function cb(err, res) {
         time('Batch:', tme, new Date());
@@ -31,7 +31,10 @@ function test() {
     }
     time("PUT", ptme, new Date());
     var tme = new Date();
-    //db.batch(_batch, cb);
+    var tme2 = new Date();
+    db.transaction(_batch, cb);
+    console.log('async');
+    time("Async log", tme2, new Date());
 }
 
 
@@ -48,9 +51,9 @@ function doTest(count) {
             //db.put(idx, idx);
 
             var newkey = db.get(idx);
-            console.log(newkey);
+            //console.log(newkey);
             if (lastkey !== undefined) {
-                console.log(newkey, parseInt(lastkey) < parseInt(newkey))
+                //console.log(newkey, parseInt(lastkey) < parseInt(newkey))
                 assert.ok(parseInt(lastkey) === ( parseInt(newkey) - 1) );
             }
 

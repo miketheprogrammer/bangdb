@@ -48,7 +48,7 @@ namespace Shell
  
     virtual ~AutoDestroy()
     {
-      typename std::set<T *>::iterator i;
+      typename std::set<T *>::scan i;
       for (i = autoDestroy.begin(); i != autoDestroy.end(); i++)
       {
         Destroyer<T> destroyer(*i);

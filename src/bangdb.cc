@@ -6,14 +6,14 @@
 #include <string.h>
 #include "bangdb.h"
 #include "database.h"
-#include "iterator.h"
+#include "scan.h"
 #include "transaction.h"
 namespace bangdb {
 
   void Init(v8::Handle<v8::Object> exports) { 
 
     Database::Init();
-    bangdb::Iterator::Init();
+    bangdb::Scan::Init();
     bangdb::Transaction::Init();
     v8::Local<v8::Function> bangdb = v8::FunctionTemplate::New(Bang)->GetFunction();
 
@@ -21,5 +21,5 @@ namespace bangdb {
   }
 }
 
-NODE_MODULE(bangdb, bangdb::Init);
+NODE_MODULE(bangdb_embedded, bangdb::Init);
 

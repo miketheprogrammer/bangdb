@@ -1,4 +1,4 @@
-db = require('../../index')('data');
+db = require('../../index').embedded('data');
 db.open('transactions');
 
 
@@ -15,12 +15,16 @@ for (var i = 0; i < (parseInt(process.argv[2]) || 1000); i += 1) {
     var idx = i.toString();
     transaction.put(idx,idx);
 }
-time("TRANSACTION::PUT"+process.argv[2], start, new Date());
+time("TRANSACTION::PUT - "+process.argv[2], start, new Date());
 start = new Date();
 transaction.commit();
 
 time("TRANSACTION::WRITE", start, new Date());
 
+start = new Date()
 for (var i = 0; i < (parseInt(process.argv[2]) || 1000); i += 1) {
     var idx = i.toString();
+    db.get(idx);
 }
+
+time("GET", start, new Date());

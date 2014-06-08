@@ -9,7 +9,7 @@ namespace bangdb {
 
 class Database;
 
-class Iterator : public node::ObjectWrap {
+class Scan : public node::ObjectWrap {
 
 public:
   static void Init();
@@ -19,20 +19,20 @@ public:
     , v8::Local<v8::String> ekey
   );
 
-  Iterator (
+  Scan (
       Database* db
     , v8::Local<v8::String> skey
     , v8::Local<v8::String> ekey
   );
 
-  ~Iterator();
+  ~Scan();
 
-  bool IteratorNext(std::string& key, std::string& value); // Has Next; move iter; out key:val
-  bool IteratorPeekNext(); // Is there more data coming
-  bool IteratorHasNext();
-  bool IteratorClose();
-  bool IteratorEnd();
-  resultset* NewIterator(char* skey, char* ekey);
+  bool ScanNext(std::string& key, std::string& value); // Has Next; move iter; out key:val
+  bool ScanPeekNext(); // Is there more data coming
+  bool ScanHasNext();
+  bool ScanClose();
+  bool ScanEnd();
+  resultset* NewScan(char* skey, char* ekey);
   
   bool keyAsBuffer;
   bool valueAsBuffer;
@@ -47,7 +47,7 @@ private:
     char* c_ekey;
     v8::Persistent<v8::Object> persistentHandle;
 
-    bool GetIterator();
+    bool GetScan();
 
     static NAN_METHOD(New);
     static NAN_METHOD(Next);

@@ -7,7 +7,7 @@
 #include <string>
 #include <bangdb/database.h>
 #include "nan.h"
-#include "iterator.h"
+#include "scan.h"
 #include "transaction.h"
 namespace bangdb {
 
@@ -26,7 +26,7 @@ public:
   int OpenTable(char* name);
   int CloseTable(char* name);
 
-  resultset* NewIterator (char* skey, char* ekey);
+  resultset* NewScan (char* skey, char* ekey);
   // For now we dont expose the underlying connection layer.
   // We will consider 1 connection per table for now.
   // Later maybe use a connection pool if needed.
@@ -49,8 +49,8 @@ private:
   table* bangtable; // 
   connection* bangconnection;
   char* name;
-  uint32_t currentIteratorId;
-  std::map< uint32_t, resultset* > iterators;
+  uint32_t currentScanId;
+  std::map< uint32_t, resultset* > scans;
   // Public API Methods
   static NAN_METHOD(New);  // Initlizes. Private;
 
@@ -62,7 +62,7 @@ private:
   static NAN_METHOD(Close); // CloseTable
   
   static NAN_METHOD(Transaction);
-  static NAN_METHOD(Iterator);
+  static NAN_METHOD(Scan);
   
   // Free is a pointer to CloseDatabase
   static NAN_METHOD(Free);

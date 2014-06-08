@@ -2,13 +2,13 @@
 #include <node_buffer.h>
 
 #include "database.h"
-#include "iterator.h"
+#include "scan.h"
 
 namespace bangdb {
 
-v8::Persistent<v8::FunctionTemplate> iterator_constructor;
+v8::Persistent<v8::FunctionTemplate> scan_constructor;
 
-Iterator::Iterator (
+Scan::Scan (
     Database* db
   , v8::Local<v8::String> skey
   , v8::Local<v8::String> ekey
@@ -24,17 +24,17 @@ Iterator::Iterator (
 
   c_skey = NanFromV8String(skey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
   c_ekey = NanFromV8String(ekey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-  rs = db->NewIterator(c_skey, c_ekey);
+  rs = db->NewScan(c_skey, c_ekey);
 
 }
 
-Iterator::~Iterator (
+Scan::~Scan (
   ) {
 
 };
 
 
-bool Iterator::IteratorNext (std::string& key, std::string& value) {
+bool Scan::ScanNext (std::string& key, std::string& value) {
   if(rs->hasNext()) {
     key.assign((char* )rs->getNextKey()->data, rs->getNextKey()->length);
     value.assign((char* )rs->getNextVal()->data, rs->getNextVal()->length);
@@ -47,7 +47,7 @@ bool Iterator::IteratorNext (std::string& key, std::string& value) {
       rs->clear();
       delete rs;
 
-      rs = db->NewIterator(sk, ek);
+      rs = db->NewScan(sk, ek);
       rs->moveNext();
       if (rs->hasNext()) {
         key.assign((char* )rs->getNextKey()->data, rs->getNextKey()->length);
@@ -62,7 +62,7 @@ bool Iterator::IteratorNext (std::string& key, std::string& value) {
     return false;
   }
 }
-bool Iterator::IteratorHasNext() {
+bool Scan::ScanHasNext() {
   if(rs->hasNext()) {
     return true;
   }
@@ -73,11 +73,11 @@ bool Iterator::IteratorHasNext() {
   return false;
 }
 
-bool Iterator::IteratorPeekNext() {
+bool Scan::ScanPeekNext() {
   return rs->moreDataToCome();
 }
 
-bool Iterator::IteratorClose() {
+bool Scan::ScanClose() {
   if (rs != NULL) {
     rs->clear();
     delete rs;
@@ -85,19 +85,19 @@ bool Iterator::IteratorClose() {
   }
   return false;
 }
-void Iterator::Init () {
+void Scan::Init () {
   v8::Local<v8::FunctionTemplate> tpl =
-      v8::FunctionTemplate::New(Iterator::New);
-  NanAssignPersistent(v8::FunctionTemplate, iterator_constructor, tpl);
-  tpl->SetClassName(NanSymbol("Iterator"));
+      v8::FunctionTemplate::New(Scan::New);
+  NanAssignPersistent(v8::FunctionTemplate, scan_constructor, tpl);
+  tpl->SetClassName(NanSymbol("Scan"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "next", Iterator::Next);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "peek", Iterator::Peek);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "hasNext", Iterator::HasNext);
-  //NODE_SET_PROTOTYPE_METHOD(tpl, "end", Iterator::End);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "next", Scan::Next);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "peek", Scan::Peek);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "hasNext", Scan::HasNext);
+  //NODE_SET_PROTOTYPE_METHOD(tpl, "end", Scan::End);
 }
 
-v8::Local<v8::Object> Iterator::NewInstance (
+v8::Local<v8::Object> Scan::NewInstance (
         v8::Local<v8::Object> db
       , v8::Local<v8::String> skey
       , v8::Local<v8::String> ekey
@@ -107,14 +107,14 @@ v8::Local<v8::Object> Iterator::NewInstance (
 
   v8::Local<v8::Object> instance;
   v8::Local<v8::FunctionTemplate> constructorHandle =
-      NanPersistentToLocal(iterator_constructor);
+      NanPersistentToLocal(scan_constructor);
 
   v8::Handle<v8::Value> argv[3] = { db, skey, ekey };
   instance = constructorHandle->GetFunction()->NewInstance(3, argv);
 
   return instance;
 }
-NAN_METHOD(Iterator::New) {
+NAN_METHOD(Scan::New) {
   NanScope();
 
   Database* database = node::ObjectWrap::Unwrap<Database>(args[0]->ToObject());
@@ -122,38 +122,38 @@ NAN_METHOD(Iterator::New) {
   v8::Local<v8::String> skey = args[1].As<v8::String>();
   v8::Local<v8::String> ekey = args[2].As<v8::String>();
 
-  Iterator* iterator = new Iterator(
+  Scan* scan = new Scan(
       database
     , skey
     , ekey
   );
-  iterator->Wrap(args.This());
+  scan->Wrap(args.This());
 
   NanReturnValue(args.This());
 }
-NAN_METHOD(Iterator::HasNext){
+NAN_METHOD(Scan::HasNext){
   NanScope();
-  Iterator* iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
-  NanReturnValue(v8::Boolean::New(iterator->IteratorHasNext()));
+  Scan* scan = node::ObjectWrap::Unwrap<Scan>(args.This());
+  NanReturnValue(v8::Boolean::New(scan->ScanHasNext()));
 }
 
-NAN_METHOD(Iterator::Next) {
+NAN_METHOD(Scan::Next) {
   NanScope();
-  Iterator* iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
+  Scan* scan = node::ObjectWrap::Unwrap<Scan>(args.This());
 
   std::string key;
   std::string value;
 
-  iterator->IteratorNext(key, value);
+  scan->ScanNext(key, value);
 
   NanReturnValue(v8::String::New(value.c_str()));
 }
 
-NAN_METHOD(Iterator::Peek) {
+NAN_METHOD(Scan::Peek) {
   NanScope();
-  Iterator* iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
+  Scan* scan = node::ObjectWrap::Unwrap<Scan>(args.This());
 
-  NanReturnValue(v8::Boolean::New(iterator->IteratorPeekNext()));
+  NanReturnValue(v8::Boolean::New(scan->ScanPeekNext()));
 
 }
 }

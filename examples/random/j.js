@@ -1,4 +1,4 @@
-db = require('../../index')('data');
+db = require('../../index').embedded('data');
 db.open('put_benchmark');
 
 var input = [];
@@ -31,7 +31,7 @@ var start = new Date();
 
 for (var i = 0; i < (parseInt(process.argv[2]) || 1000); i += 1) {
     var idx = i.toString()
-    db.put(idx, input);
+    db.put(idx, idx);
 }
 
 time("PUT", start, new Date());
