@@ -17,7 +17,7 @@ namespace bangdb {
     bangdb::Transaction::Init();
     v8::Local<v8::Function> bangdb = v8::FunctionTemplate::New(Bang)->GetFunction();
 
-    exports->Set(NanSymbol("bangdb"), bangdb);
+    exports->Set(NanNew<v8::String>("bangdb"), bangdb);
   }
 }
 

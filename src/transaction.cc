@@ -24,8 +24,8 @@ long Transaction::Commit() {
 
 void Transaction::Init () {
   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Transaction::New);
-  NanAssignPersistent(v8::FunctionTemplate, transaction_constructor, tpl);
-  tpl->SetClassName(NanSymbol("Transaction"));
+  NanAssignPersistent(transaction_constructor, tpl);
+  tpl->SetClassName(NanNew<v8::String>("Transaction"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "put", Transaction::Put);
   NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Transaction::Del);
@@ -54,7 +54,7 @@ v8::Handle<v8::Value> Transaction::NewInstance (
   v8::Local<v8::Object> instance;
 
   v8::Local<v8::FunctionTemplate> constructorHandle =
-      NanPersistentToLocal(transaction_constructor);
+      NanNew<v8::FunctionTemplate>(transaction_constructor);
 
   v8::Handle<v8::Value> argv[1] = { database };
   instance = constructorHandle->GetFunction()->NewInstance(1, argv);
@@ -70,10 +70,13 @@ NAN_METHOD(Transaction::Put) {
   if (transaction->written)
     return NanThrowError("commit() already called on this transaction");
 
+  size_t sz_keyHandle;
+  size_t sz_valueHandle;
+
   v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
   v8::Local<v8::Object> valueHandle = args[1].As<v8::Object>();
-  char* key = NanFromV8String(keyHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-  char* val = NanFromV8String(valueHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  char* key = NanCString(keyHandle, &sz_keyHandle);
+  char* val = NanCString(valueHandle, &sz_valueHandle);
 
   transaction->db->PutValue(key, val, transaction->txn_handle);
 
@@ -93,7 +96,9 @@ NAN_METHOD(Transaction::Del) {
     return NanThrowError("commit() already called on this transaction");
 
   v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
-  char* key = NanFromV8String(keyHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+
+  size_t sz_key;
+  char* key = NanCString(keyHandle, &sz_key);
 
   transaction->db->DeleteValue(key, transaction->txn_handle);
 
@@ -133,7 +138,7 @@ NAN_METHOD(Transaction::Commit) {
     } else {
       TransactionWriteWorker* worker  = new TransactionWriteWorker(transaction, NULL);
       v8::Local<v8::Object> _this = args.This();
-      worker->SavePersistent("transaction", _this);
+      worker->SaveToPersistent("transaction", _this);
       NanAsyncQueueWorker(worker);
     }
   } else {

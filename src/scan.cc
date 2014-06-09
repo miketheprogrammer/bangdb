@@ -12,19 +12,24 @@ Scan::Scan (
     Database* db
   , v8::Local<v8::String> skey
   , v8::Local<v8::String> ekey
+  , v8::Local<v8::Object> optionsObj
 ) : db(db)
   , skey(skey)
   , ekey(ekey)
+  , optionsObj(optionsObj)
 {
   NanScope();
 
   v8::Local<v8::Object> obj = v8::Object::New();
 
-  NanAssignPersistent(v8::Object, persistentHandle, obj);
+  NanAssignPersistent(persistentHandle, obj);
 
-  c_skey = NanFromV8String(skey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-  c_ekey = NanFromV8String(ekey.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-  rs = db->NewScan(c_skey, c_ekey);
+  size_t sz_skey;
+  size_t sz_ekey;
+
+  c_skey = NanCString(skey, &sz_skey);
+  c_ekey = NanCString(ekey, &sz_ekey);
+  rs = db->NewScan(c_skey, c_ekey, optionsObj);
 
 }
 
@@ -47,7 +52,9 @@ bool Scan::ScanNext (std::string& key, std::string& value) {
       rs->clear();
       delete rs;
 
-      rs = db->NewScan(sk, ek);
+      //v8::Local<v8::Value> newVal = NanNew<v8::Value>(est);
+      optionsObj->Set(NanNew<v8::String>("skey_op"), v8::Number::New(1));
+      rs = db->NewScan(sk, ek, optionsObj);
       rs->moveNext();
       if (rs->hasNext()) {
         key.assign((char* )rs->getNextKey()->data, rs->getNextKey()->length);
@@ -88,8 +95,8 @@ bool Scan::ScanClose() {
 void Scan::Init () {
   v8::Local<v8::FunctionTemplate> tpl =
       v8::FunctionTemplate::New(Scan::New);
-  NanAssignPersistent(v8::FunctionTemplate, scan_constructor, tpl);
-  tpl->SetClassName(NanSymbol("Scan"));
+  NanAssignPersistent(scan_constructor, tpl);
+  tpl->SetClassName(NanNew<v8::String>("Scan"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "next", Scan::Next);
   NODE_SET_PROTOTYPE_METHOD(tpl, "peek", Scan::Peek);
@@ -101,16 +108,17 @@ v8::Local<v8::Object> Scan::NewInstance (
         v8::Local<v8::Object> db
       , v8::Local<v8::String> skey
       , v8::Local<v8::String> ekey
+      , v8::Local<v8::Object> optionsObj
     ) {
 
   NanScope();
 
   v8::Local<v8::Object> instance;
   v8::Local<v8::FunctionTemplate> constructorHandle =
-      NanPersistentToLocal(scan_constructor);
+      NanNew<v8::FunctionTemplate>(scan_constructor);
 
-  v8::Handle<v8::Value> argv[3] = { db, skey, ekey };
-  instance = constructorHandle->GetFunction()->NewInstance(3, argv);
+  v8::Handle<v8::Value> argv[4] = { db, skey, ekey, optionsObj };
+  instance = constructorHandle->GetFunction()->NewInstance(4, argv);
 
   return instance;
 }
@@ -121,11 +129,12 @@ NAN_METHOD(Scan::New) {
 
   v8::Local<v8::String> skey = args[1].As<v8::String>();
   v8::Local<v8::String> ekey = args[2].As<v8::String>();
-
+  v8::Local<v8::Object> optionsObj = args[3].As<v8::Object>();
   Scan* scan = new Scan(
       database
     , skey
     , ekey
+    , optionsObj
   );
   scan->Wrap(args.This());
 

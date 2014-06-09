@@ -26,7 +26,7 @@ public:
   int OpenTable(char* name);
   int CloseTable(char* name);
 
-  resultset* NewScan (char* skey, char* ekey);
+  resultset* NewScan (char* skey, char* ekey, v8::Local<v8::Object> optionsObj);
   // For now we dont expose the underlying connection layer.
   // We will consider 1 connection per table for now.
   // Later maybe use a connection pool if needed.

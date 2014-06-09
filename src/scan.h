@@ -17,12 +17,14 @@ public:
       v8::Local<v8::Object> db
     , v8::Local<v8::String> skey
     , v8::Local<v8::String> ekey
+    , v8::Local<v8::Object> optionsObj
   );
 
   Scan (
       Database* db
     , v8::Local<v8::String> skey
     , v8::Local<v8::String> ekey
+    , v8::Local<v8::Object> optionsObj
   );
 
   ~Scan();
@@ -43,6 +45,7 @@ private:
     resultset* rs;
     v8::Local<v8::String> skey;
     v8::Local<v8::String> ekey;
+    v8::Local<v8::Object> optionsObj;
     char* c_skey;
     char* c_ekey;
     v8::Persistent<v8::Object> persistentHandle;

@@ -55,7 +55,7 @@ IOWorker::IOWorker (
 {
   NanScope();
 
-  SavePersistent("key", keyHandle);
+  SaveToPersistent("key", keyHandle);
 };
 
 IOWorker::~IOWorker () {}
@@ -80,7 +80,7 @@ ReadWorker::ReadWorker (
 {
   NanScope();
 
-  SavePersistent("key", keyHandle);
+  SaveToPersistent("key", keyHandle);
 };
 
 ReadWorker::~ReadWorker () {
@@ -106,7 +106,7 @@ void ReadWorker::HandleOKCallback () {
     returnValue = v8::String::New((char*)value.data(), value.size());
   }
   v8::Local<v8::Value> argv[] = {
-      NanNewLocal<v8::Value>(v8::Null())
+      NanNull()
     , returnValue
   };
   callback->Call(2, argv);
@@ -123,7 +123,7 @@ DeleteWorker::DeleteWorker (
 {
   NanScope();
 
-  SavePersistent("key", keyHandle);
+  SaveToPersistent("key", keyHandle);
 };
 
 DeleteWorker::~DeleteWorker () {}
@@ -147,7 +147,7 @@ WriteWorker::WriteWorker (
 {
   NanScope();
 
-  //SavePersistent("value", valueHandle);
+  //SaveToPersistent("value", valueHandle);
 };
 
 WriteWorker::~WriteWorker () {}

@@ -8,6 +8,7 @@
 #include "autodestroy.h"
 #include "database_async.h"
 #include "transaction.h"
+#include <inttypes.h>
 using node::AtExit;
 
 namespace bangdb {
@@ -63,8 +64,8 @@ int Database::CloseDatabase () {
 
 void Database::Init () {
   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Database::New);
-  NanAssignPersistent(v8::FunctionTemplate, database_constructor, tpl);
-  tpl->SetClassName(NanSymbol("Database"));
+  NanAssignPersistent(database_constructor, tpl);
+  tpl->SetClassName(NanNew<v8::String>("Database"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "open", Database::Open);
   //NODE_SET_PROTOTYPE_METHOD(tpl, "new", Database::New);
@@ -157,14 +158,55 @@ FILEOFF_T Database::DeleteValue(char* key, void* txn_handle) {
   return flag;
 }
 
-resultset* Database::NewScan (char* skey, char* ekey) {
+resultset* Database::NewScan (char* skey, char* ekey, v8::Local<v8::Object> optionsObj) {
   scan_filter sf;
   
-  //let's override the default way of scanning
-  sf.skey_op = GTE;
-  sf.ekey_op = LTE;
-  sf.limitby = LIMIT_RESULT_ROW;
-  sf.limit = 1000;  //1000 rows
+  // Messy switches is there a better way to handle enum props with javascript inputs
+  uint32_t skey_op = NanUInt32OptionValue(optionsObj, NanNew<v8::String>("skey_op"), 1);
+  uint32_t ekey_op = NanUInt32OptionValue(optionsObj, NanNew<v8::String>("ekey_op"), 0);
+  uint32_t limit_by = NanUInt32OptionValue(optionsObj, NanNew<v8::String>("limit_by"), 1);
+  uint32_t limit = NanUInt32OptionValue(optionsObj, NanNew<v8::String>("limit"), 100);
+  //printf("has ekey_op :: %u \n", skey_op);
+  switch (skey_op) {
+    case 0:
+      sf.skey_op = GT;
+      break;
+    case 1:
+      sf.skey_op = GTE;
+      break;
+    case 2:
+      sf.skey_op = LT;
+      break;
+    case 3:
+      sf.skey_op = LTE;
+      break;
+    default:
+      sf.skey_op = GT;
+  }
+  switch (ekey_op) {
+    case 0:
+      sf.ekey_op = GT;
+      break;
+    case 1:
+      sf.ekey_op = GTE;
+      break;
+    case 2:
+      sf.ekey_op = LT;
+      break;
+    case 3:
+      sf.ekey_op = LTE;
+      break;
+    default:
+      sf.ekey_op = LTE;
+  }
+
+  if (limit_by == 0) {
+    sf.limitby = LIMIT_RESULT_SIZE;
+  } else {
+    sf.limitby = LIMIT_RESULT_ROW;
+  }
+
+  sf.limit = limit;  //1000 rows
 
   resultset* rs = bangconnection->scan(skey, ekey, &sf);
 
@@ -180,7 +222,8 @@ NAN_METHOD(Database::New) {
   if (!args[0]->IsString())
     return NanThrowError("constructor requires a location string argument");
 
-  char* name = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  size_t count;
+  char* name = NanCString(args[0], &count);
 
   Database* obj = new Database(name);
   //Shell::autoDestroy(obj);
@@ -194,7 +237,8 @@ NAN_METHOD(Database::Open) {
  
   Database* _db = ObjectWrap::Unwrap<Database>(args.This());
  
-  char* tablename = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  size_t count;
+  char* tablename = NanCString(args[0], &count);
 
   _db->OpenTable(tablename);
 
@@ -207,7 +251,8 @@ NAN_METHOD(Database::Close) {
  
   Database* _db = ObjectWrap::Unwrap<Database>(args.This());
  
-  char* tablename = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  size_t count;
+  char* tablename = NanCString(args[0], &count);
 
   _db->CloseTable(tablename);
 
@@ -231,8 +276,11 @@ NAN_METHOD(Database::Put) {
 
   v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
   v8::Local<v8::Object> valueHandle = args[1].As<v8::Object>();
-  char* key = NanFromV8String(keyHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-  char* val = NanFromV8String(valueHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+
+  size_t cKey;
+  size_t cVal;
+  char* key = NanCString(args[0], &cKey);
+  char* val = NanCString(args[1], &cVal);
 
   v8::Local<v8::Function> callback = args[2].As<v8::Function>();
 
@@ -250,7 +298,7 @@ NAN_METHOD(Database::Put) {
     );
     // persist to prevent accidental GC
     v8::Local<v8::Object> _this = args.This();
-    worker->SavePersistent("database", _this);
+    worker->SaveToPersistent("database", _this);
     NanAsyncQueueWorker(worker);
   }
   NanReturnUndefined();
@@ -260,9 +308,11 @@ NAN_METHOD(Database::Get) {
   NanScope();
 
   BD_METHOD_SETUP_COMMON(get, 1, 2);
+
+  size_t cKey;
   v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
 
-  char* key = NanFromV8String(keyHandle.As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  char* key = NanCString(args[0], &cKey);
   if (callback->IsNull() || callback->IsUndefined()) {
     std::string out;
     FDT* result = _db->GetValue(key, out);
@@ -274,8 +324,8 @@ NAN_METHOD(Database::Get) {
       result->free();
     }
   } else {
-    bool asBuffer = NanBooleanOptionValue(optionsObj, NanSymbol("asBuffer"), true);
-    bool fillCache = NanBooleanOptionValue(optionsObj, NanSymbol("fillCache"), true);
+    bool asBuffer = NanBooleanOptionValue(optionsObj, NanNew<v8::String>("asBuffer"), true);
+    bool fillCache = NanBooleanOptionValue(optionsObj, NanNew<v8::String>("fillCache"), true);
     ReadWorker* worker = new ReadWorker(
         _db
       , new NanCallback(callback)
@@ -286,7 +336,7 @@ NAN_METHOD(Database::Get) {
     );
 
     v8::Local<v8::Object> _this = args.This();
-    worker->SavePersistent("database", _this);
+    worker->SaveToPersistent("database", _this);
     NanAsyncQueueWorker(worker);
     NanReturnUndefined();
   }
@@ -299,10 +349,11 @@ NAN_METHOD(Database::Delete) {
   Database* _db = ObjectWrap::Unwrap<Database>(args.This());
 
   v8::Local<v8::Object> keyHandle = args[0].As<v8::Object>();
-  v8::Local<v8::Object> valueHandle = args[1].As<v8::Object>();
-  char* key = NanFromV8String(keyHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
-  v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+  size_t cKey;
+  char* key = NanCString(args[0], &cKey);
+
+  v8::Local<v8::Function> callback = args[1].As<v8::Function>();
 
   //If no callback execute sync
   if (callback->IsNull() || callback->IsUndefined()) {
@@ -316,7 +367,7 @@ NAN_METHOD(Database::Delete) {
     );
     // persist to prevent accidental GC
     v8::Local<v8::Object> _this = args.This();
-    worker->SavePersistent("database", _this);
+    worker->SaveToPersistent("database", _this);
     NanAsyncQueueWorker(worker);
   }
   NanReturnUndefined();
@@ -336,7 +387,7 @@ v8::Handle<v8::Value> Database::NewInstance (v8::Local<v8::String> &name) {
   v8::Local<v8::Object> instance;
 
   v8::Local<v8::FunctionTemplate> constructorHandle =
-      NanPersistentToLocal(database_constructor);
+      NanNew<v8::FunctionTemplate>(database_constructor);
 
   if (name.IsEmpty()) {
     instance = constructorHandle->GetFunction()->NewInstance(0, NULL);
@@ -353,16 +404,27 @@ NAN_METHOD(Database::Scan) {
 
   Database* database = node::ObjectWrap::Unwrap<Database>(args.This());
 
-  //v8::Local<v8::String> skey = NanFromV8String(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-  //v8::Local<v8::String> ekey = NanFromV8String(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  //v8::Local<v8::String> skey = NanCString(args[0].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+  //v8::Local<v8::String> ekey = NanCString(args[1].As<v8::Object>(), Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
 
   v8::Local<v8::String> skey = args[0].As<v8::String>();
   v8::Local<v8::String> ekey = args[1].As<v8::String>();
+  v8::Local<v8::Object> optionsObj;
+  if (args[2]->IsObject()) {
+    printf("saving Object \n");
+    printf("saving object\n");
+    optionsObj = args[2].As<v8::Object>();
+    printf("is empty :: %d \n", optionsObj.IsEmpty());
+    printf("has skey_op :: %d \n", optionsObj->Has(NanNew<v8::String>("skey_op")));
+  }
+
   v8::TryCatch try_catch;
+  
   v8::Local<v8::Object> scanHandle = Scan::NewInstance(
       args.This()
     , skey
     , ekey
+    , optionsObj
   );
 
   if (try_catch.HasCaught()) {
@@ -389,18 +451,30 @@ NAN_METHOD(Database::Transaction) {
   bool hasData = false;
 
   for (unsigned int i = 0; i < array->Length(); i++) {
+    
     if(!array->Get(i)->IsObject())
       continue;
+    
     v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(array->Get(i));
-    v8::Local<v8::Value> keyHandle = obj->Get(NanSymbol("key"));
-    char* key = NanFromV8String(keyHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
-    if (obj->Get(NanSymbol("type"))->StrictEquals(NanSymbol("del"))) {
+
+    v8::Local<v8::Value> keyHandle = obj->Get(NanNew<v8::String>("key"));
+
+    size_t cKey;
+    char* key = NanCString(keyHandle, &cKey);
+
+    if (obj->Get(NanNew<v8::String>("type"))->StrictEquals(NanNew<v8::String>("del"))) {
+      
       _db->DeleteValue(key, txn_handle);
+      
       if (!hasData)
         hasData = true;
-    } else if (obj->Get(NanSymbol("type"))->StrictEquals(NanSymbol("put"))) {
-      v8::Local<v8::Value> valueHandle = obj->Get(NanSymbol("value"));
-      char* value = NanFromV8String(valueHandle, Nan::UTF8, NULL, NULL, 0, v8::String::NO_OPTIONS);
+    } else if (obj->Get(NanNew<v8::String>("type"))->StrictEquals(NanNew<v8::String>("put"))) {
+  
+      v8::Local<v8::Value> valueHandle = obj->Get(NanNew<v8::String>("value"));
+
+      size_t cVal;
+      char* value = NanCString(valueHandle, &cVal);
+      
       _db->PutValue(key, value, txn_handle);
       if (!hasData)
         hasData = true;
@@ -415,7 +489,7 @@ NAN_METHOD(Database::Transaction) {
       , arr
     );
     v8::Local<v8::Object> _this = args.This();
-    worker->SavePersistent("_db", _this);
+    worker->SaveToPersistent("_db", _this);
     NanAsyncQueueWorker(worker);
   } else {
     //node::MakeCallback(                                                          \
